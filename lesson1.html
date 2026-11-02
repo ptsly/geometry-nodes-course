@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 1 课 · 认识几何节点 · 几何节点那些事</title>
+  <meta name="description" content="Blender 5.2 几何节点入门第 1 课：它是什么、在哪打开、你的第一条节点树。" />
+  <style>
+:root {
+  --bg: #0f1115; --fg: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8;
+  --card: #1a1d24; --line: #2a2f3a; --quote: #232834;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+  background: radial-gradient(1200px 600px at 12% -8%, #1b2433 0%, var(--bg) 55%);
+  color: var(--fg); line-height: 1.7;
+}
+.wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.35rem 4rem; }
+nav { font-size: .9rem; margin-bottom: 1.5rem; color: var(--muted); }
+nav a { color: var(--accent); text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+h1 { font-size: clamp(1.45rem, 4vw, 1.85rem); font-weight: 650; letter-spacing: -.02em; line-height: 1.35; margin: 0 0 1rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; color: var(--fg); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .5rem; color: var(--accent); }
+p { margin: 0 0 .85rem; color: var(--muted); }
+p strong, li strong, td strong { color: var(--fg); }
+ul, ol { color: var(--muted); margin: 0 0 1rem; padding-left: 1.25rem; }
+li { margin-bottom: .35rem; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 1.75rem 0; }
+blockquote {
+  margin: 1rem 0; padding: .85rem 1.1rem; background: var(--quote);
+  border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+}
+blockquote p { margin: 0 0 .4rem; color: var(--fg); }
+blockquote p:last-child { margin: 0; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .88em; background: #232834; padding: .1em .35em; border-radius: 4px; color: #c6d4f5;
+}
+figure { margin: 1.25rem 0; }
+figure img {
+  display: block; width: 100%; height: auto; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--card);
+}
+figcaption { font-size: .8rem; color: var(--muted); margin-top: .45rem; text-align: center; }
+.table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { border: 1px solid var(--line); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+th { background: var(--card); color: var(--fg); }
+td { color: var(--muted); }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li label { display: flex; gap: .5rem; align-items: flex-start; }
+.checklist input { margin-top: .35rem; }
+.actions {
+  display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.25rem 0 1.75rem;
+}
+.btn {
+  display: inline-block; padding: .55rem 1rem; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line); color: var(--accent);
+  text-decoration: none; font-size: .92rem; font-weight: 600;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: #243044; }
+footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="index.html">几何节点那些事</a> · 第 1 课</nav>
+    <div class="actions">
+      <a class="btn primary" href="blends/L01_first_geometry_nodes_tree.blend" download>下载案例 .blend</a>
+      <a class="btn" href="lessons/L01_first_geometry_nodes_tree.md">查看 Markdown 源文件</a>
+    </div>
+<h1 id="第-1-课-认识几何节点-它是什么-在哪打开-你的第一条节点树">第 1 课 · 认识几何节点：它是什么、在哪打开、你的第一条节点树</h1>
+<blockquote>
+<p><strong>版本说明（重要）</strong>  </p>
+<p>本课是按「几何节点从零开始」标准 <strong>重写</strong> 的新第 1 课，取代原先偏难的《几何流 vs 场》版本。  </p>
+<p>旧版课件与案例已归档到 <code>lessons/archive/</code>、<code>blends/archive/</code>、<code>assets/L01/archive_old_hard_lesson/</code>，以后进阶课还会用到其中的思路，但 <strong>今天请只学这一版</strong>。  </p>
+<p>目标软件：<strong>Blender 5.2 LTS</strong>（你云电脑上已安装）。节点名一律用 <strong>英文官方名</strong>，旁边用中文解释。</p>
+</blockquote>
+<hr />
+<h2 id="这节课你要带走什么">这节课你要带走什么</h2>
+<p>学完这一课，你应该能自信地说出下面五句话，并且亲手做到：</p>
+<ol>
+<li><strong>Geometry Nodes（几何节点）</strong> 是挂在物体上的一种 <strong>修改器</strong>：用节点图描述「几何怎么生成 / 怎么被改造」，不是材质节点。</li>
+<li>你会给物体添加 <strong>Geometry Nodes</strong> 修改器，并打开 <strong>Geometry Node Editor（几何节点编辑器）</strong>。</li>
+<li>你明白 <strong>Group Input → Group Output</strong> 是整棵树的「生命线」；新建时它们默认连着，等于 <strong>原样输出物体自己的网格</strong>。</li>
+<li>你会 <strong>断开</strong> 那条默认连线，加入一个 <strong>Cube（Mesh Primitive / 网格基本体：立方体）</strong>，让视口里出现的是 <strong>节点算出来的立方体</strong>。</li>
+<li>你知道修改器面板上的 <strong>Size（尺寸）</strong> 从哪来——它来自节点组接口里你暴露出去的输入。</li>
+</ol>
+<p><strong>本课故意不讲：</strong> Field（场）的深水区、Instance on Points、Align Rotation、Normalize 等等。那些都很好玩，但会放到后面的课，等你站稳了再上。</p>
+<hr />
+<h2 id="先讲个故事-为什么要学这个">先讲个故事：为什么要学这个</h2>
+<p>你已经会 Blender 的基础操作了——移动视图、加物体、改材质、时间轴拉一拉，这些我们不再从头讲。</p>
+<p>但如果你喜欢 <strong>动态图形、有趣特效</strong>，很快会碰到一种挫败感：</p>
+<ul>
+<li>做一个「会呼吸的 Logo」：手工建模一次可以，要改尺寸、改密度、改节奏，就得拆掉重来。</li>
+<li>做一排小方块围着球转：复制粘贴 20 次能交差，要改成 36 个还朝外站好，手会疯。</li>
+</ul>
+<p>几何节点干的事，可以想成：<strong>把「我怎么做这个模型」写成一份可调参数的菜谱</strong>。  </p>
+<p>菜谱改一口盐（一个数值），整道菜重新烧一遍——电脑不嫌烦，你也更自由。</p>
+<p>今天我们不急着做大菜。我们只做一件事：  </p>
+<p><strong>让你亲眼看见：视口里的立方体，可以完全由节点「生成」，而不是你在编辑模式里挤出来的。</strong></p>
+<p>这听起来简单，却是后面所有炫技的地基。地基不稳，后面讲 Field、实例、曲线，都会像在听天书。</p>
+<hr />
+<h2 id="它和你熟悉的建模差在哪">它和你熟悉的建模差在哪</h2>
+<p>请先看这张对照卡（浅色概念图）：</p>
+<figure><img src="assets/L01/03_what_is_geometry_nodes.jpg" alt="几何节点是什么" loading="lazy" /><figcaption>几何节点是什么</figcaption></figure>
+<p>用大白话再说一遍：</p>
+<div class="table-wrap"><table>
+<tr><th>方式</th><th>你在干什么</th><th>改早期决定难不难</th></tr>
+<tr><td>传统建模</td><td>在视口里点、挤出、布尔，像捏粘土</td><td>往往很难，历史一步步叠上去</td></tr>
+<tr><td>材质节点（Shader）</td><td>管「看起来怎样」：颜色、粗糙、透明</td><td>不管顶点够不够、面怎么长出来</td></tr>
+<tr><td><strong>几何节点</strong></td><td>管「几何怎样生成 / 变形」</td><td>改参数就能重算，适合动效与复用</td></tr>
+</table></div>
+<p><strong>记忆口诀：</strong>  </p>
+<p>材质节点管「皮肤」，几何节点管「骨架与零件」。  </p>
+<p>本课只碰后者。你如果一不小心打开了 Shader Editor，看到彩色的 Principled BSDF，那是隔壁教室——关掉，回到 Geometry Node Editor。</p>
+<hr />
+<h2 id="案例文件-先打开看一眼结果">案例文件：先打开看一眼结果</h2>
+<p>请先下载并打开案例文件：</p>
+<p>案例文件：<a href="../blends/L01_first_geometry_nodes_tree.blend">L01_first_geometry_nodes_tree.blend</a></p>
+<p>（若你在课程同步盘里学习，路径也常见为：<code>…/GeometryNodesCourse/blends/L01_first_geometry_nodes_tree.blend</code>）</p>
+<p>场景里有一个物体，名字叫 <strong><code>L01_First_Tree</code></strong>。</p>
+<p>选中它，看右侧 <strong>Modifier Properties（修改器属性）</strong>：</p>
+<ul>
+<li>上面挂着一个 <strong>Geometry Nodes</strong> 修改器</li>
+<li>修改器里有一个可拧的 <strong>Size</strong>（默认大约是 2.0）</li>
+</ul>
+<p>拧一下 Size——视口里的立方体变大变小。  </p>
+<p>恭喜：你已经在「遥控」一条节点树了，哪怕你还没读懂每一个插座。</p>
+<p>再看两个渲染参考（就是这个案例在灯光下的样子，截图保持 Blender 原样）：</p>
+<figure><img src="assets/L01/01_viewport_cube_result.jpg" alt="视口结果 · 斜角" loading="lazy" /><figcaption>视口结果 · 斜角</figcaption></figure>
+<figure><img src="assets/L01/02_viewport_cube_front.jpg" alt="视口结果 · 偏正面" loading="lazy" /><figcaption>视口结果 · 偏正面</figcaption></figure>
+<p>接下来我们把「这条树到底怎么长出来的」拆开讲。你可以对照案例自学，也可以按下面步骤从空白场景自己搭一遍——两种都有效，我更推荐 <strong>至少自己搭一遍</strong>，印象会深很多。</p>
+<hr />
+<h2 id="在界面里怎么走到几何节点-一步步">在界面里怎么走到几何节点（一步步）</h2>
+<p>下面假设：你会选中物体、切换编辑器类型、打开修改器面板。  </p>
+<p>凡是 <strong>和几何节点有关</strong> 的步骤，我都写细一点。</p>
+<p>先看一张「路线示意图」：</p>
+<figure><img src="assets/L01/05_where_to_click.jpg" alt="界面路径示意" loading="lazy" /><figcaption>界面路径示意</figcaption></figure>
+<h3 id="步骤-a-准备一个载体物体">步骤 A：准备一个载体物体</h3>
+<ol>
+<li>新建或打开一个场景。</li>
+<li>加一个任意网格物体也行（Cube、Plane 都可以）。  </li>
+</ol>
+<p>   <strong>关键认知：</strong> 这个物体像一个「插座」——几何节点修改器要挂在某个物体上才能工作。  </p>
+<p>   在本课案例里，物体叫 <code>L01_First_Tree</code>。它自己的网格几乎不重要，因为我们稍后 <strong>不再输出它的原始网格</strong>。</p>
+<h3 id="步骤-b-添加-geometry-nodes-修改器">步骤 B：添加 Geometry Nodes 修改器</h3>
+<ol>
+<li>选中物体。</li>
+<li>到 <strong>Modifier Properties</strong>（扳手图标那一页）。</li>
+<li><strong>Add Modifier → Geometry Nodes</strong>。  </li>
+</ol>
+<p>   （不同 Blender 版本菜单分类可能略有出入，搜索框里输入 <code>Geometry</code> 一般就能找到。）</p>
+<p>添加成功后，修改器里通常会出现一个节点组（有的版本会提示 New / 新建）。点 <strong>New</strong>，给节点组起个好认的名字，比如 <code>L01_First_Tree</code>。</p>
+<h3 id="步骤-c-打开-geometry-node-editor">步骤 C：打开 Geometry Node Editor</h3>
+<ol>
+<li>把某个编辑器区域的类型改成 <strong>Geometry Node Editor</strong>（几何节点编辑器）。  </li>
+</ol>
+<p>   不要选成 Shader Editor，也不要选 Compositor。</p>
+<ol>
+<li>确认左上角 / 头栏显示的是你刚才那个节点组，并且物体仍然被选中。  </li>
+</ol>
+<p>   如果编辑器一片空白：多半是 <strong>没选中带几何节点修改器的物体</strong>，或者修改器还没指定节点组——回去检查步骤 B。</p>
+<h3 id="步骤-d-认识默认的-生命线">步骤 D：认识默认的「生命线」</h3>
+<p>新建几何节点组时，你几乎总会看到两个节点：</p>
+<ul>
+<li><strong>Group Input（组输入）</strong> —— 左边，负责把「外面的东西」送进节点树  </li>
+<li><strong>Group Output（组输出）</strong> —— 右边，负责把「算完的几何」送回修改器 / 视口  </li>
+</ul>
+<p>默认情况下，它们之间有一根线，连的是 <strong>Geometry → Geometry</strong>。</p>
+<p>这句话请慢慢读：</p>
+<blockquote>
+<p><strong>默认连线 = 物体原来长什么样，修改器就算完还输出什么样。</strong>  </p>
+<p>等于你装了一个「什么都没做」的几何节点修改器。它不是坏了，它只是在说：原样通过。</p>
+</blockquote>
+<p>这就是生命线。后面所有花活，都是在这根线中间「插入工序」，或者像本课一样——<strong>换一条水源</strong>。</p>
+<hr />
+<h2 id="本课核心操作-断开默认线-改用-cube-生成几何">本课核心操作：断开默认线，改用 Cube 生成几何</h2>
+<p>请看生命线对照图：</p>
+<figure><img src="assets/L01/04_input_output_lifeline.jpg" alt="Group Input 到 Output 的生命线" loading="lazy" /><figcaption>Group Input 到 Output 的生命线</figcaption></figure>
+<h3 id="步骤-e-断开默认连线">步骤 E：断开默认连线</h3>
+<p>在 Geometry Node Editor 里：</p>
+<ol>
+<li>选中 <strong>Group Input</strong> 和 <strong>Group Output</strong> 之间那根 Geometry 连线。</li>
+<li>按删除键删掉它（或拖拽插头拔掉）。</li>
+</ol>
+<p>这时候视口里物体可能会 <strong>消失</strong>（或变成空）。别慌——你只是暂时没有给 Output 任何几何。  </p>
+<p>就像水管中间断了，下游没水。</p>
+<h3 id="步骤-f-加入-cube-mesh-primitive">步骤 F：加入 Cube（Mesh Primitive）</h3>
+<ol>
+<li>在节点编辑器空白处，按快捷键 <strong>Shift + A</strong>（或用 Add 菜单）。</li>
+<li>找到 <strong>Mesh → Cube</strong>（有的菜单写作 Mesh Primitives / 网格基本体）。  </li>
+</ol>
+<p>   官方节点名就是 <strong>Cube</strong>，类别属于 Mesh Primitive。</p>
+<ol>
+<li>把 Cube 节点放到 Input 和 Output 中间。</li>
+<li>把 Cube 的输出插座 <strong>Mesh</strong>，拖到 <strong>Group Output</strong> 的 <strong>Geometry</strong> 上。</li>
+</ol>
+<p>视口里应该出现一个立方体。</p>
+<p><strong>此刻发生了什么？</strong></p>
+<ul>
+<li>你没有去编辑模式挤面。</li>
+<li>立方体的顶点、边、面，是 <strong>Cube 节点按参数生成</strong> 的。</li>
+<li>物体原始网格（Group Input 的 Geometry） <strong>没有接到 Output</strong>，所以它不出现在最终结果里。  </li>
+</ul>
+<p>  它还在物体数据里睡着，只是这条节点树选择「不用它」。</p>
+<p>这就是本课最重要的心法转换：</p>
+<blockquote>
+<p>几何节点既可以 <strong>改造</strong> 原有几何，也可以 <strong>完全生成</strong> 新几何。  </p>
+<p>今天我们选第二种，好让你看清：Output 里出来的东西，才是你最终看见的。</p>
+</blockquote>
+<h3 id="步骤-g-可选修饰-案例里有-但不是考点">步骤 G：可选修饰（案例里有，但不是考点）</h3>
+<p>案例文件里，Cube 后面还接了：</p>
+<ul>
+<li><strong>Set Shade Smooth（设置平滑着色）</strong> —— 控制面是否平滑着色；本课案例里保持不平滑，立方体棱角更清楚  </li>
+<li><strong>Set Material（设置材质）</strong> —— 给生成出来的网格挂上一个材质，方便看清</li>
+</ul>
+<p>它们的角色是「化妆」，不是「骨架」。你第一次自己搭时，<strong>可以先省略</strong>，直接 <code>Cube → Group Output</code> 也完全合格。</p>
+<h3 id="步骤-h-暴露-size-让修改器面板能拧">步骤 H：暴露 Size，让修改器面板能拧</h3>
+<p>现在立方体有了，但最好能在修改器上调大小，而不用每次点进节点里改。</p>
+<ol>
+<li>看 <strong>Cube</strong> 节点上的 <strong>Size</strong>（尺寸）输入。  </li>
+</ol>
+<p>   在 Blender 5.2 里，Cube 常用一个统一的 Size；老一点的版本可能是 Size X / Y / Z。</p>
+<ol>
+<li>把 <strong>Group Input</strong> 里的一个浮点输出，连到 Cube 的 Size。  </li>
+</ol>
+<p>   - 若 Group Input 还没有 Size：在节点组接口（Group 面板 / 界面 N 面板的 Group 页）里 <strong>新增一个 Float 输入</strong>，命名为 <code>Size</code>，设个默认值（比如 2.0）。  </p>
+<p>   - 案例文件已经帮你做好了：接口里有 <code>Geometry</code>（闲置）和 <code>Size</code>（在用）。</p>
+<ol>
+<li>回到修改器面板：你应该能看到 <strong>Size</strong> 滑块。拧它，立方体跟着变。</li>
+</ol>
+<p><strong>参数是从哪冒出来的？</strong></p>
+<blockquote>
+<p>修改器面板上出现的那些输入，来自 <strong>节点组接口（Group Interface）里标记为 Input 的插座</strong>。  </p>
+<p>你在接口里暴露什么，修改器就显示什么。  </p>
+<p>本课只暴露一个 Size，够用了。</p>
+</blockquote>
+<hr />
+<h2 id="对照案例-每个节点为什么存在">对照案例：每个节点为什么存在</h2>
+<p>打开案例 <code>L01_first_geometry_nodes_tree.blend</code>，节点组名也是 <code>L01_First_Tree</code>。从左到右大致是：</p>
+<div class="table-wrap"><table>
+<tr><th>节点（英文名）</th><th>中文旁注</th><th>它在本课的职责</th></tr>
+<tr><td><strong>Group Input</strong></td><td>组输入</td><td>提供 <code>Size</code>；<code>Geometry</code> 故意不接线，提醒你「原始网格这次不用」</td></tr>
+<tr><td><strong>Cube</strong></td><td>立方体（网格基本体）</td><td>真正「造」出网格的地方</td></tr>
+<tr><td><strong>Set Shade Smooth</strong></td><td>设置平滑着色</td><td>可选；让着色方式明确</td></tr>
+<tr><td><strong>Set Material</strong></td><td>设置材质</td><td>可选；挂上蓝色材质方便观看</td></tr>
+<tr><td><strong>Group Output</strong></td><td>组输出</td><td>生命线终点；只有接到这里的几何才会出现在视口</td></tr>
+</table></div>
+<p>另外还有一个 <strong>Frame（框）</strong>，标签写着本课提醒：用节点造立方体，不走原始网格。框不参与计算，只是注释。</p>
+<p><strong>特意没有做的事（请放心）：</strong></p>
+<ul>
+<li>没有 Instance on Points  </li>
+<li>没有对齐旋转、没有噪声、没有场数学  </li>
+<li>没有把原始 Geometry 和 Cube Join 在一起  </li>
+</ul>
+<p>那些是后面课程的戏份。</p>
+<hr />
+<h2 id="两种思路的对比-帮你建立直觉">两种思路的对比（帮你建立直觉）</h2>
+<h3 id="思路-1-直通-默认">思路 1：直通（默认）</h3>
+<p><code>Group Input.Geometry → Group Output.Geometry</code></p>
+<p>物体长什么样，输出还什么样。适合「我要在原有模型上继续加工」的起点。</p>
+<h3 id="思路-2-节点生成-本课默认可见结果">思路 2：节点生成（本课默认可见结果）</h3>
+<p><code>Cube.Mesh → … → Group Output.Geometry</code>  </p>
+<p>（Group Input.Geometry 闲置；Size 驱动 Cube）</p>
+<p>视口完全由节点生成。适合「从零程序化」的起点，也适合教学：因为结果干净，你不会怀疑「这是不是物体自带的网格」。</p>
+<p>以后你常会把两种思路 <strong>混用</strong>：既吃一点原始几何，又生成新零件，再用 <strong>Join Geometry（合并几何）</strong> 拼起来。那是后话。</p>
+<hr />
+<h2 id="常见卡点-几乎每个初学者都会遇到">常见卡点（几乎每个初学者都会遇到）</h2>
+<h3 id="1-几何节点编辑器是空白的">1. 几何节点编辑器是空白的</h3>
+<ul>
+<li>物体没选中  </li>
+<li>修改器里还没有节点组（点 New）  </li>
+<li>编辑器类型选错成了 Shader / Compositor  </li>
+</ul>
+<h3 id="2-断开默认线之后-物体消失了">2. 断开默认线之后，物体消失了</h3>
+<p>正常。Output 没接到任何 Geometry，下游没东西可显示。把 Cube 的 Mesh 接上 Output 即可。</p>
+<h3 id="3-加了-cube-但看起来没变化-还是原来的形状">3. 加了 Cube，但看起来没变化 / 还是原来的形状</h3>
+<ul>
+<li>是不是 <strong>默认的 Input→Output 线还在</strong>，同时 Cube 也接上了？有的情况要以实际连接为准，检查 Output 到底吃的是哪根线。  </li>
+<li>是不是修改器被禁用（显示器图标关掉了）？  </li>
+<li>是不是看错了物体？</li>
+</ul>
+<h3 id="4-修改器面板没有-size">4. 修改器面板没有 Size</h3>
+<ul>
+<li>Size 只存在于 Cube 节点内部，还没有连到 Group Input，也没有在接口里创建同名输入。  </li>
+<li>去 Group 接口里确认有一个 Float 输入叫 Size，并且有连线进 Cube。</li>
+</ul>
+<h3 id="5-我和案例颜色不一样">5. 我和案例颜色不一样</h3>
+<p>完全没关系。材质只是为了好看。本课考核的是 <strong>树的结构</strong>，不是调色。</p>
+<h3 id="6-我误进了编辑模式去改立方体">6. 我误进了编辑模式去改立方体</h3>
+<p>几何节点生成的网格，在修改器还在时，通常不是你去编辑模式「永久改形」的对象。本课请留在物体模式，拧 Size，观察节点结果。</p>
+<hr />
+<h2 id="小练习-做完才算真正上完课">小练习（做完才算真正上完课）</h2>
+<p>请务必动手，不要只看：</p>
+<ol>
+<li><strong>拧 Size</strong>  </li>
+</ol>
+<p>   把 Size 调到 0.5、1.0、3.0，感受「参数 → 重算几何」的即时反馈。</p>
+<ol>
+<li><strong>换成 Ico Sphere（二十面球体）</strong>  </li>
+</ol>
+<p>   - 删掉或旁路 Cube  </p>
+<p>   - Shift+A → Mesh → <strong>Ico Sphere</strong>  </p>
+<p>   - 把它的 Mesh 接到通往 Output 的链上  </p>
+<p>   - 试试它的 <strong>Radius（半径）</strong>、<strong>Subdivisions（细分）</strong>  </p>
+<p>   做完你会发现：换基本体，只是换「水源」，生命线的逻辑不变。</p>
+<ol>
+<li><strong>（可选）对比实验</strong>  </li>
+</ol>
+<p>   临时把 <code>Group Input.Geometry</code> 直接连回 <code>Group Output.Geometry</code>（断开 Cube）。  </p>
+<p>   看看视口变成什么——那就是「直通原始网格」。再改回 Cube 方案。  </p>
+<p>   对比一次，比听十句解释都清楚。</p>
+<hr />
+<h2 id="收工检查清单">收工检查清单</h2>
+<ul class="checklist">
+<li><label><input type="checkbox" disabled  /> 能用自己的话区分：几何节点 vs 材质节点 vs 传统建模  </label></li>
+<li><label><input type="checkbox" disabled  /> 会添加 Geometry Nodes 修改器并打开 Geometry Node Editor  </label></li>
+<li><label><input type="checkbox" disabled  /> 理解 Group Input / Group Output 默认直通的含义  </label></li>
+<li><label><input type="checkbox" disabled  /> 会断开默认线，用 Cube 生成可见立方体  </label></li>
+<li><label><input type="checkbox" disabled  /> 修改器上能看到并可调节 Size  </label></li>
+<li><label><input type="checkbox" disabled  /> 完成「换成 Ico Sphere」小练习  </label></li>
+</ul>
+<hr />
+<h2 id="下节预告">下节预告</h2>
+<p>第 2 课会继续放慢速度，专门讲：</p>
+<p><strong>怎么读节点编辑器</strong> —— 插座颜色、实线、节点上的输入输出、Viewer（查看器）怎么当手电筒用。  </p>
+<p>仍然不讲 Field 深水；我们先把「看懂一张节点图」练成肌肉记忆。</p>
+<hr />
+<h2 id="本课文件一览">本课文件一览</h2>
+<div class="table-wrap"><table>
+<tr><th>类型</th><th>路径</th></tr>
+<tr><td>课件</td><td><code>lessons/L01_first_geometry_nodes_tree.md</code></td></tr>
+<tr><td>案例</td><td><code>blends/L01_first_geometry_nodes_tree.blend</code></td></tr>
+<tr><td>配图</td><td><code>assets/L01/</code>（视口 ×2 + 概念图 ×3）</td></tr>
+<tr><td>旧版归档</td><td><code>lessons/archive/</code>、<code>blends/archive/</code>、<code>assets/L01/archive_old_hard_lesson/</code></td></tr>
+</table></div>
+<p>Google Drive 同步文件夹：课程根目录 <code>GeometryNodesCourse</code>（与云电脑同结构）。</p>
+<hr />
+<p>*L01 · 从零认识几何节点 · Blender 5.2 LTS*</p>
+    <footer>L01 · 从零认识几何节点 · Blender 5.2 LTS · 斯坦圣</footer>
+  </div>
+</body>
+</html>

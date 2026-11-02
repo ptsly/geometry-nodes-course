@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>几何节点那些事</title>
+  <meta name="description" content="Blender 5.2 LTS 几何节点入门小课" />
+  <style>
+:root {
+  --bg: #0f1115; --fg: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8;
+  --card: #1a1d24; --line: #2a2f3a; --quote: #232834;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+  background: radial-gradient(1200px 600px at 12% -8%, #1b2433 0%, var(--bg) 55%);
+  color: var(--fg); line-height: 1.7;
+}
+.wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.35rem 4rem; }
+nav { font-size: .9rem; margin-bottom: 1.5rem; color: var(--muted); }
+nav a { color: var(--accent); text-decoration: none; }
+nav a:hover { text-decoration: underline; }
+h1 { font-size: clamp(1.45rem, 4vw, 1.85rem); font-weight: 650; letter-spacing: -.02em; line-height: 1.35; margin: 0 0 1rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; color: var(--fg); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
+h3 { font-size: 1.05rem; margin: 1.4rem 0 .5rem; color: var(--accent); }
+p { margin: 0 0 .85rem; color: var(--muted); }
+p strong, li strong, td strong { color: var(--fg); }
+ul, ol { color: var(--muted); margin: 0 0 1rem; padding-left: 1.25rem; }
+li { margin-bottom: .35rem; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 1.75rem 0; }
+blockquote {
+  margin: 1rem 0; padding: .85rem 1.1rem; background: var(--quote);
+  border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+}
+blockquote p { margin: 0 0 .4rem; color: var(--fg); }
+blockquote p:last-child { margin: 0; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .88em; background: #232834; padding: .1em .35em; border-radius: 4px; color: #c6d4f5;
+}
+figure { margin: 1.25rem 0; }
+figure img {
+  display: block; width: 100%; height: auto; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--card);
+}
+figcaption { font-size: .8rem; color: var(--muted); margin-top: .45rem; text-align: center; }
+.table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { border: 1px solid var(--line); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+th { background: var(--card); color: var(--fg); }
+td { color: var(--muted); }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li label { display: flex; gap: .5rem; align-items: flex-start; }
+.checklist input { margin-top: .35rem; }
+.actions {
+  display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.25rem 0 1.75rem;
+}
+.btn {
+  display: inline-block; padding: .55rem 1rem; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line); color: var(--accent);
+  text-decoration: none; font-size: .92rem; font-weight: 600;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: #243044; }
+footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem; }
+
+  .card-link {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.25rem 1.35rem; margin-top: 1.25rem;
+    transition: border-color .2s, transform .2s;
+  }
+  .card-link:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-link h2 { margin: 0 0 .45rem; border: 0; padding: 0; font-size: 1.1rem; }
+  .card-link p { margin: 0; }
+  .go { color: var(--accent); font-weight: 600; font-size: .92rem; display: inline-block; margin-top: .85rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>几何节点那些事</h1>
+    <p>面向 Blender <strong>5.2 LTS</strong> 的几何节点入门小课。节点名用英文官方名，旁边用中文解释。</p>
+    <a class="card-link" href="lesson1.html">
+      <h2>第 1 课 · 认识几何节点</h2>
+      <p>它是什么、在哪打开、你的第一条节点树。学完能自己用 Cube 节点生成立方体，并在修改器上拧 Size。</p>
+      <span class="go">开始学习 →</span>
+    </a>
+    <footer>斯坦圣 · <a href="https://ptsly.com/" style="color:var(--accent)">ptsly.com</a></footer>
+  </div>
+</body>
+</html>
