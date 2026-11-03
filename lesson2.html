@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 2 课 · Transform 与 Join · 几何节点那些事</title>
+  <meta name="description" content="Blender 5.2 几何节点第 2 课：Transform Geometry 与 Join Geometry，移动、旋转、拼出第一个小场景。" />
+  <style>
+    :root {
+      --bg: #0f1115; --fg: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8;
+      --card: #1a1d24; --line: #2a2f3a; --quote: #232834;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+      background: radial-gradient(1200px 600px at 12% -8%, #1b2433 0%, var(--bg) 55%);
+      color: var(--fg); line-height: 1.7;
+    }
+    .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.35rem 4rem; }
+    nav { font-size: .9rem; margin-bottom: 1.25rem; color: var(--muted); }
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    h1 { font-size: clamp(1.45rem, 4vw, 1.85rem); font-weight: 650; letter-spacing: -.02em; line-height: 1.35; margin: 0 0 1rem; }
+    h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; color: var(--fg); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
+    h3 { font-size: 1.05rem; margin: 1.4rem 0 .5rem; color: var(--accent); }
+    p { margin: 0 0 .85rem; color: var(--muted); }
+    p strong, li strong, td strong { color: var(--fg); }
+    ul, ol { color: var(--muted); margin: 0 0 1rem; padding-left: 1.25rem; }
+    li { margin-bottom: .35rem; }
+    hr { border: 0; border-top: 1px solid var(--line); margin: 1.75rem 0; }
+    blockquote {
+      margin: 1rem 0; padding: .85rem 1.1rem; background: var(--quote);
+      border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+    }
+    blockquote p { margin: 0 0 .4rem; color: var(--fg); }
+    blockquote p:last-child { margin: 0; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88em; background: #232834; padding: .1em .35em; border-radius: 4px; color: #c6d4f5;
+    }
+    figure { margin: 1.25rem 0; }
+    figure img {
+      display: block; width: 100%; height: auto; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--card);
+    }
+    figcaption { font-size: .8rem; color: var(--muted); margin-top: .45rem; text-align: center; }
+    .table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { border: 1px solid var(--line); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+    th { background: var(--card); color: var(--fg); }
+    td { color: var(--muted); }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li label { display: flex; gap: .5rem; align-items: flex-start; }
+    .checklist input { margin-top: .35rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0 1.5rem; }
+    .btn {
+      display: inline-block; padding: .55rem 1rem; border-radius: 999px;
+      background: var(--card); border: 1px solid var(--line); color: var(--accent);
+      text-decoration: none; font-size: .92rem; font-weight: 600;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: #243044; }
+    .lead { color: var(--muted); margin-bottom: 0.5rem; }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem; }
+    a.ai-tag {
+      display: inline-flex; align-items: center;
+      font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+      text-decoration: none; color: #a8d4ff;
+      background: #1e2a3a; border: 1px solid #35506e;
+      border-radius: 999px; padding: .15rem .55rem; margin-left: .35rem;
+    }
+    a.ai-tag:hover { border-color: #8ab4f8; }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="index.html">几何节点那些事</a> · 第 2 课 · <a href="https://ptsly.com/courses/geometry-nodes/l02.html">ptsly.com</a></nav>
+    <div class="actions">
+      <a class="btn primary" href="blends/L02_transform_and_join.blend" download>下载案例 .blend</a>
+      <a class="btn" href="lessons/L02_transform_and_join.md">查看 Markdown 源文件</a>
+      <a class="btn" href="lesson1.html">← 第 1 课</a>
+    </div>
+<h1>第 2 课 · Transform Geometry 与 Join Geometry：移动、旋转、拼出第一个小场景</h1>
+<blockquote>
+<p><strong>衔接说明</strong><br />
+第 1 课你已经会：给物体挂 Geometry Nodes 修改器、打开 Geometry Node Editor、用 <strong>Cube</strong> 生成网格、把 <strong>Size</strong> 暴露到修改器面板。<br />
+今天不讲 Field（场），也不讲 Instance on Points。我们只做两件「积木级」的事：<br />
+<strong>整块挪动（Transform Geometry）</strong>，以及 <strong>把两块拼成一件（Join Geometry）</strong>。<br />
+目标软件：<strong>Blender 5.2 LTS</strong>。节点名一律用 <strong>英文官方名</strong>，旁边用中文解释。</p>
+</blockquote>
+<hr />
+<h2>这节课你要带走什么</h2>
+<p>学完这一课，你应该能自信地说出并亲手做到：</p>
+<ol>
+<li><strong>Transform Geometry（变换几何）</strong> 对 <strong>一整块 Geometry</strong> 做 Translation（平移）/ Rotation（旋转）/ Scale（缩放），<strong>不改拓扑</strong>（点数、面数、谁连谁都不变）。</li>
+<li><strong>Join Geometry（合并几何）</strong> 把 <strong>多条 Geometry 流</strong> 并成 <strong>一条</strong>，再送进 <strong>Group Output</strong>。</li>
+<li>你能自己搭：一条流生成 <strong>Cube</strong> 做底座，另一条流生成 <strong>UV Sphere</strong> 做上层；各自 Transform，再 Join。</li>
+<li>修改器面板上至少能拧三个参数：<strong>Gap</strong>（上下间距）、<strong>TopScale</strong>（上层缩放）、<strong>Yaw</strong>（整体绕 Z 旋转，单位是 <strong>弧度</strong>）。</li>
+<li>（可选）用 <strong>Set Material</strong> 给上下两件不同颜色——好看，但不是考点。</li>
+</ol>
+<p><strong>本课故意不讲：</strong> Field、Instance on Points、Set Position 逐点挪动、Realize Instances。那些会在后面的课出现。</p>
+<hr />
+<h2>先讲为什么：只有「造」还不够，还要「摆」和「拼」</h2>
+<p>第 1 课像学会「用打印机打出一块积木」。<br />
+可动效 Logo、小场景、标题底座……几乎从来不是一块积木搞定。</p>
+<p>你会很快碰到两件很具体的事：</p>
+<ul>
+<li><strong>摆</strong>：球想浮在方块上方一点，不能永远叠在原点。  </li>
+<li><strong>拼</strong>：方块和球是两条生成线，但 <strong>Group Output 只有一个 Geometry 入口</strong>——你总得先把它们合成「一件东西」再交出去。</li>
+</ul>
+<p>Transform 负责「摆」，Join 负责「拼」。<br />
+学完这两个，你就能搭出今天的极简 Logo 底座：<strong>暖色大方块 + 上方蓝球</strong>，像一个会呼吸的品牌底座草稿。</p>
+<hr />
+<h2>案例先打开：先看结果，再拆菜谱</h2>
+<p>请在云电脑打开：</p>
+<p><a href="blends/L02_transform_and_join.blend">L02_transform_and_join.blend</a></p>
+<p>场景主物体名：<strong><code>L02_Transform_Join</code></strong>。<br />
+节点组同名：<strong><code>L02_Transform_Join</code></strong>。</p>
+<p>选中物体，看 <strong>Modifier Properties</strong>：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认大约</th>
+<th>你拧它时会发生什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gap</strong></td>
+<td>0.85</td>
+<td>上层球沿 Z 升高 / 降低（上下间距）</td>
+</tr>
+<tr>
+<td><strong>TopScale</strong></td>
+<td>0.55</td>
+<td>上层球整体变大 / 变小</td>
+</tr>
+<tr>
+<td><strong>Yaw</strong></td>
+<td>0.4</td>
+<td>整件（方块+球）绕 Z 旋转；单位是 <strong>弧度</strong>（0.4 ≈ 23°）</td>
+</tr>
+</tbody>
+</table></div>
+<p>先拧三下玩一会儿。玩完再往下读——你会带着画面感听概念。</p>
+<p>案例渲染参考（Eevee 棚拍光，<strong>保持原样</strong>，未做美化；可当作「视口结果」对照）：</p>
+<p><figure><img src="assets/L02/01_viewport_logo_result.jpg" alt="案例结果 · 斜角" loading="lazy" /><figcaption>案例结果 · 斜角</figcaption></figure></p>
+<p><figure><img src="assets/L02/02_viewport_logo_front.jpg" alt="案例结果 · 偏正面" loading="lazy" /><figcaption>案例结果 · 偏正面</figcaption></figure></p>
+<blockquote>
+<p>说明：这两张是案例文件用相机渲染出来的参考图，不是手工 P 过的宣传图。你本机视口角度不同、主题不同，颜色和阴影略有差别完全正常。</p>
+</blockquote>
+<hr />
+<h2>概念一：Transform Geometry 在做什么</h2>
+<p>请先看概念图：</p>
+<p><figure><img src="assets/L02/03_transform_geometry.jpg" alt="Transform Geometry 概念" loading="lazy" /><figcaption>Transform Geometry 概念</figcaption></figure></p>
+<h3>一句话</h3>
+<blockquote>
+<p><strong>Transform Geometry = 把整块几何当成一件积木，用手挪、转、放大缩小。</strong><br />
+它 <strong>不改</strong> 积木内部结构（拓扑），只改「这件东西在空间里怎么放」。</p>
+</blockquote>
+<h3>三个旋钮分别是什么</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>英文插座</th>
+<th>中文</th>
+<th>直观理解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Translation</strong></td>
+<td>平移</td>
+<td>往哪挪：XYZ 三个方向的位移</td>
+</tr>
+<tr>
+<td><strong>Rotation</strong></td>
+<td>旋转</td>
+<td>怎么转：在几何节点里通常是 <strong>欧拉角，单位弧度</strong></td>
+</tr>
+<tr>
+<td><strong>Scale</strong></td>
+<td>缩放</td>
+<td>放大还是缩小：可分轴，也可三轴同一数值</td>
+</tr>
+</tbody>
+</table></div>
+<h3>和「在物体模式按 G/R/S」的异同</h3>
+<ul>
+<li><strong>像</strong>：都是动整件。  </li>
+<li><strong>不像</strong>：这里动的是 <strong>节点树算出来的那块 Geometry</strong>，参数可以暴露、可动画、可跟别的节点连线；不是一次性的手工变换。</li>
+</ul>
+<h3>和后面会学的 Set Position 有什么不同（先建立边界）</h3>
+<ul>
+<li><strong>Transform Geometry</strong>：整块统一变换。  </li>
+<li><strong>Set Position</strong>（后课）：可以按「每个点自己的便签（Field）」分别挪——那是另一套思维。<br />
+今天请只记住 Transform 这一边。</li>
+</ul>
+<h3>弧度小抄（Yaw 会用到）</h3>
+<p>Blender 几何节点的旋转，默认按 <strong>弧度</strong> 思考最省事：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>角度</th>
+<th>约等于弧度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>90°</td>
+<td>π/2 ≈ 1.5708</td>
+</tr>
+<tr>
+<td>180°</td>
+<td>π ≈ 3.1416</td>
+</tr>
+<tr>
+<td>360°</td>
+<td>2π ≈ 6.2832</td>
+</tr>
+</tbody>
+</table></div>
+<p>案例默认 Yaw = 0.4，大约 23°，只是让 Logo 稍微「扭」一点，不至于正对相机太死板。</p>
+<hr />
+<h2>概念二：Join Geometry 在做什么</h2>
+<p>请看泳道图：</p>
+<p><figure><img src="assets/L02/04_join_geometry.jpg" alt="Join Geometry 双流合并" loading="lazy" /><figcaption>Join Geometry 双流合并</figcaption></figure></p>
+<h3>一句话</h3>
+<blockquote>
+<p><strong>Group Output 只收一条 Geometry 水管。</strong><br />
+零件再多，也要先用 <strong>Join Geometry</strong> 并成「一件拼好的东西」，再交给 Output。</p>
+</blockquote>
+<h3>泳道怎么理解</h3>
+<p>本课案例就是两条泳道：</p>
+<ol>
+<li><strong>泳道 A（底座）</strong><br />
+<code>Cube →（可选材质）→ Transform Geometry →</code> 流 A  </li>
+<li><strong>泳道 B（上层）</strong><br />
+<code>UV Sphere →（可选材质）→ Transform Geometry（Gap / TopScale）→</code> 流 B  </li>
+<li><strong>汇合</strong><br />
+<code>流 A + 流 B → Join Geometry →</code>（可选再 Transform 做 Yaw）<code>→ Group Output</code></li>
+</ol>
+<p>Join 节点在 Blender 5.x 里是一个 <strong>可多次接入的 Geometry 多输入</strong>：你把两根（或更多根）Geometry 线都拖到它的 Geometry 入口上即可。</p>
+<h3>常见误解</h3>
+<ul>
+<li><strong>误解：</strong> Join 是「布尔并集，融成一个流形」。<br />
+<strong>其实：</strong> 更像「把两袋零件倒进同一个袋子」。两边网格都还在，只是变成同一条 Geometry 流往下走。  </li>
+<li><strong>误解：</strong> 可以把两根线都直接接到 Group Output。<br />
+<strong>其实：</strong> Output 通常只留一个 Geometry 结果；多件要先 Join（或用别的合并手段，本课只用 Join）。</li>
+</ul>
+<hr />
+<h2>本课参数地图（对照修改器面板）</h2>
+<p><figure><img src="assets/L02/05_exposed_parameters.jpg" alt="三个暴露参数" loading="lazy" /><figcaption>三个暴露参数</figcaption></figure></p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>接到哪里</th>
+<th>视觉效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gap</strong></td>
+<td>上层 Transform 的 <strong>Translation.Z</strong></td>
+<td>球离底座多远</td>
+</tr>
+<tr>
+<td><strong>TopScale</strong></td>
+<td>上层 Transform 的 <strong>Scale.X/Y/Z</strong>（同一值）</td>
+<td>球整体大小</td>
+</tr>
+<tr>
+<td><strong>Yaw</strong></td>
+<td>Join <strong>之后</strong> 那层 Transform 的 <strong>Rotation.Z</strong></td>
+<td>整件一起绕竖轴转</td>
+</tr>
+</tbody>
+</table></div>
+<p>为什么 Yaw 放在 Join 之后？<br />
+因为我们想要「方块和球锁在一起转」，而不是只转球、底座不动。<br />
+<strong>先拼，再整体转</strong>——这个顺序本身就是动效思维。</p>
+<hr />
+<h2>手把手：从空白自己搭一遍（推荐）</h2>
+<p>下面假设你已会第 1 课的：Add Modifier → Geometry Nodes、打开 Geometry Node Editor、Shift+A 加节点。<br />
+只把 <strong>本课新增</strong> 的步骤写细。</p>
+<h3>步骤 A：新建节点组载体</h3>
+<ol>
+<li>新建场景，加任意网格物体当载体（叫什么都行）。  </li>
+<li>Add Modifier → <strong>Geometry Nodes</strong> → New。  </li>
+<li>把节点组改名为 <code>L02_Transform_Join</code>（可与案例一致，方便对照）。  </li>
+<li><strong>断开</strong> Group Input → Group Output 的默认 Geometry 线（和第 1 课一样）。</li>
+</ol>
+<h3>步骤 B：搭底座泳道（Cube）</h3>
+<ol>
+<li>Shift+A → Mesh → <strong>Cube</strong>。  </li>
+<li>把 Cube 的 Size 调成「扁一点的大方块」感觉即可（案例大约 X/Y 较大、Z 较薄；版本若只有单一 Size，先用默认再靠 Transform 微调）。  </li>
+<li>（可选）加 <strong>Set Shade Smooth</strong>，关掉平滑，棱角更清楚。  </li>
+<li>（可选）加 <strong>Set Material</strong>，选一个暖色材质。  </li>
+<li>加 <strong>Transform Geometry</strong>，接到底座链末端。<br />
+   - Translation 可略向下（例如 Z = -0.15），让整体更靠近世界原点。  </li>
+<li><strong>先不要接 Output。</strong> 这条线待会儿进 Join。</li>
+</ol>
+<h3>步骤 C：搭上层泳道（UV Sphere）</h3>
+<ol>
+<li>Shift+A → Mesh → <strong>UV Sphere</strong>（或 Ico Sphere，效果同类；案例用 UV Sphere）。  </li>
+<li>（可选）Set Shade Smooth 打开；Set Material 选冷色。  </li>
+<li>再加一个 <strong>Transform Geometry</strong>。  </li>
+<li>在 Group 接口里新增 Float 输入：<br />
+   - <code>Gap</code>（默认 0.85）<br />
+   - <code>TopScale</code>（默认 0.55）  </li>
+<li>用 <strong>Combine XYZ</strong>：<br />
+   - Gap → Combine 的 Z → 接到上层 Transform 的 <strong>Translation</strong><br />
+   - TopScale → Combine 的 X/Y/Z → 接到上层 Transform 的 <strong>Scale</strong>  </li>
+<li>同样 <strong>先不要接 Output</strong>。</li>
+</ol>
+<h3>步骤 D：Join，再整体 Yaw</h3>
+<ol>
+<li>Shift+A → Geometry → <strong>Join Geometry</strong>。  </li>
+<li>把底座 Transform 的 Geometry、上层 Transform 的 Geometry，<strong>都接到</strong> Join 的 Geometry 入口。  </li>
+<li>再加第三个 <strong>Transform Geometry</strong>，接在 Join 后面。  </li>
+<li>接口新增 Float：<code>Yaw</code>（默认 0.4）。  </li>
+<li>Combine XYZ：Yaw → Z → 接到这个 Transform 的 <strong>Rotation</strong>。  </li>
+<li>最后：该 Transform 的 Geometry → <strong>Group Output</strong>。</li>
+</ol>
+<h3>步骤 E：验收</h3>
+<ul>
+<li>修改器上看得到 Gap / TopScale / Yaw。  </li>
+<li>拧 Gap：球上下跑。  </li>
+<li>拧 TopScale：球变大变小，底座基本不动。  </li>
+<li>拧 Yaw：两件 <strong>一起</strong> 转。</li>
+</ul>
+<p>如果你的结果和案例方向差 90°，多半是相机角度或 Yaw 正负不同——以「参数是否联动正确」为准，不必像素级对齐。</p>
+<hr />
+<h2>对照案例：每个节点为什么在</h2>
+<p>打开案例节点组 <code>L02_Transform_Join</code>，从左到右可以按框来读：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>区域</th>
+<th>主要节点（英文名）</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>底座框</td>
+<td><strong>Cube</strong> → Set Shade Smooth → Set Material → <strong>Transform Geometry</strong></td>
+<td>生成底座并摆好</td>
+</tr>
+<tr>
+<td>上层框</td>
+<td><strong>UV Sphere</strong> → Set Shade Smooth → Set Material → <strong>Transform Geometry</strong></td>
+<td>生成上层；Gap / TopScale 打进这里</td>
+</tr>
+<tr>
+<td>汇合框</td>
+<td><strong>Join Geometry</strong> → <strong>Transform Geometry</strong>（Yaw）</td>
+<td>先拼再整体转</td>
+</tr>
+<tr>
+<td>两端</td>
+<td><strong>Group Input</strong> / <strong>Group Output</strong></td>
+<td>暴露参数；输出最终几何</td>
+</tr>
+<tr>
+<td>辅助</td>
+<td><strong>Combine XYZ</strong> ×3</td>
+<td>把单个 Float 填进向量的某一个分量</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>特意没有做的事：</strong></p>
+<ul>
+<li>没有 Instance on Points  </li>
+<li>没有用 Field 控制每个点的位置  </li>
+<li>没有 Realize Instances  </li>
+<li>没有把原始 Group Input.Geometry 拼进结果（它闲置，和第 1 课同款教学意图）</li>
+</ul>
+<p>场景里还有一个深色地面和三盏 Area 灯，只为渲染参考好看；<strong>它们不是节点树的一部分</strong>。</p>
+<hr />
+<h2>小练习（做完才算上完课）</h2>
+<ol>
+<li>
+<p><strong>只拧参数</strong><br />
+   把 Gap 调到 0.2 和 2.0；TopScale 调到 0.2 和 1.2；Yaw 调到 0 和 1.57（约 90°）。用嘴巴说出每一次视口变化对应哪条连线。</p>
+</li>
+<li>
+<p><strong>换上层基本体</strong><br />
+   把 UV Sphere 换成 <strong>Cylinder</strong>（圆柱）或 <strong>Ico Sphere</strong>。<br />
+   Transform / Join / 三个参数的逻辑应保持不变——你换的是「水源」，不是「水管结构」。</p>
+</li>
+<li>
+<p><strong>（可选）错位摆放</strong><br />
+   给上层 Transform 的 Translation 不只接 Z：让 X 或 Y 也有一个小偏移，做「球不在正中」的错位 Logo。<br />
+   你可以再暴露一个 <code>OffsetX</code>，但不是必须。</p>
+</li>
+<li>
+<p><strong>（可选）颜色</strong><br />
+   没有材质也合格；有材质只是为了上下两件更好认。</p>
+</li>
+</ol>
+<hr />
+<h2>常见卡点</h2>
+<h3>1. Join 了但只看见一件</h3>
+<ul>
+<li>另一件是不是 Scale 成了 0？  </li>
+<li>Gap 是不是大到飞出视野？  </li>
+<li>某一条泳道是不是根本没接到 Join？</li>
+</ul>
+<h3>2. 拧 Yaw 只转球、不转底座</h3>
+<ul>
+<li>Yaw 的 Transform 是不是误接在上层泳道里、而不是 Join <strong>后面</strong>？  </li>
+<li>记住口诀：<strong>先 Join，再整体 Transform。</strong></li>
+</ul>
+<h3>3. 修改器没有 Gap / TopScale / Yaw</h3>
+<ul>
+<li>接口里创建了，但忘记从 Group Input 连出去。  </li>
+<li>或者连到了节点内部默认值，没有接到 Group Input 的输出插座。</li>
+</ul>
+<h3>4. 旋转「转得好怪 / 转不动」</h3>
+<ul>
+<li>确认单位是弧度：拧到 1.57 才大约 90°。  </li>
+<li>Rotation 插座要接到 Combine XYZ 出来的向量（Z 分量是 Yaw）。</li>
+</ul>
+<h3>5. 和案例颜色、灯光不一致</h3>
+<ul>
+<li>完全没关系。本课考核的是 <strong>Transform + Join + 参数暴露</strong>，不是调色。</li>
+</ul>
+<hr />
+<h2>收工检查清单</h2>
+<ul class="checklist">
+<li><label><input type="checkbox" disabled /> 能用自己的话解释 Transform Geometry 与「改拓扑」的区别 </label></li>
+<li><label><input type="checkbox" disabled /> 能说清为什么多件零件要先 Join 再进 Group Output </label></li>
+<li><label><input type="checkbox" disabled /> 自己搭出 Cube + UV Sphere（或同类基本体）双流，再 Join </label></li>
+<li><label><input type="checkbox" disabled /> 修改器上可调 Gap、TopScale、Yaw，并且行为符合预期 </label></li>
+<li><label><input type="checkbox" disabled /> 完成「换上层基本体」小练习 </label></li>
+</ul>
+<hr />
+<h2>下节预告</h2>
+<p>第 3 课会继续在「看得懂、搭得稳」上加一块：</p>
+<p><strong>怎么读节点编辑器</strong> —— 插座颜色、连线、Viewer（查看器）当手电筒，以及如何快速确认「这一截水管里现在流着什么」。</p>
+<p>仍然把 Field 深水留到更后面；我们先把空间变换与合流用熟。</p>
+<hr />
+<h2>本课文件一览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>课件</td>
+<td><code>lessons/L02_transform_and_join.md</code></td>
+</tr>
+<tr>
+<td>案例</td>
+<td><code>blends/L02_transform_and_join.blend</code></td>
+</tr>
+<tr>
+<td>配图</td>
+<td><code>assets/L02/</code>（视口参考 ×2 + 概念图 ×3）</td>
+</tr>
+<tr>
+<td>脚本</td>
+<td><code>scripts/create_L02.py</code>、<code>scripts/gen_l02_illustrations.py</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Google Drive 同步文件夹：课程根目录 <code>GeometryNodesCourse</code>（与云电脑同结构）。</p>
+<hr />
+<p><em>L02 · Transform Geometry &amp; Join Geometry · Blender 5.2 LTS</em></p>
+    <footer>斯坦圣 · <a href="https://ptsly.com/" style="color:var(--accent)">ptsly.com</a></footer>
+  </div>
+</body>
+</html>

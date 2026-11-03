@@ -1,10 +1,17 @@
 # 几何节点那些事
 
-面向 Blender **5.2 LTS** 的几何节点入门小课。节点名用英文官方名，旁注中文。
+Blender **5.2 LTS** 几何节点入门小课（斯坦圣 / ptsly.com）。
 
-## 课程
+## 在线阅读
 
-1. [第 1 课 · 认识几何节点：它是什么、在哪打开、你的第一条节点树](lesson1.html)  
-   源码：[lessons/L01_first_geometry_nodes_tree.md](lessons/L01_first_geometry_nodes_tree.md) · 案例：[blends/L01_first_geometry_nodes_tree.blend](blends/L01_first_geometry_nodes_tree.blend)
+- 站点入口：https://ptsly.com/courses/
+- GitHub Pages：https://ptsly.github.io/geometry-nodes-course/
 
-在线阅读：<https://ptsly.github.io/geometry-nodes-course/>
+## 课次
+
+| 课 | 站点 | Pages |
+|----|------|-------|
+| L01 认识几何节点 | [/courses/geometry-nodes/l01.html](https://ptsly.com/courses/geometry-nodes/l01.html) | [lesson1.html](https://ptsly.github.io/geometry-nodes-course/lesson1.html) |
+| L02 Transform 与 Join | [/courses/geometry-nodes/l02.html](https://ptsly.com/courses/geometry-nodes/l02.html) | [lesson2.html](https://ptsly.github.io/geometry-nodes-course/lesson2.html) |
+
+配图与 `.blend` 放在本仓库（Pages 静态托管）；ptsly.com 只放轻量 HTML 正文。
