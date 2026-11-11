@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 3 课 · 读节点编辑器与 Viewer · 几何节点那些事</title>
+  <meta name="description" content="Blender 5.2 几何节点第 3 课（改订版）：读节点编辑器与 Viewer，插座颜色与形状、连线，并用手电筒看清中间结果。含 Yaw（偏航）小科普。" />
+  <style>
+    :root {
+      --bg: #0f1115; --fg: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8;
+      --card: #1a1d24; --line: #2a2f3a; --quote: #232834;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+      background: radial-gradient(1200px 600px at 12% -8%, #1b2433 0%, var(--bg) 55%);
+      color: var(--fg); line-height: 1.7;
+    }
+    .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.35rem 4rem; }
+    nav { font-size: .9rem; margin-bottom: 1.25rem; color: var(--muted); }
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    h1 { font-size: clamp(1.45rem, 4vw, 1.85rem); font-weight: 650; letter-spacing: -.02em; line-height: 1.35; margin: 0 0 1rem; }
+    h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; color: var(--fg); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
+    h3 { font-size: 1.05rem; margin: 1.4rem 0 .5rem; color: var(--accent); }
+    p { margin: 0 0 .85rem; color: var(--muted); }
+    p strong, li strong, td strong { color: var(--fg); }
+    ul, ol { color: var(--muted); margin: 0 0 1rem; padding-left: 1.25rem; }
+    li { margin-bottom: .35rem; }
+    hr { border: 0; border-top: 1px solid var(--line); margin: 1.75rem 0; }
+    blockquote {
+      margin: 1rem 0; padding: .85rem 1.1rem; background: var(--quote);
+      border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+    }
+    blockquote p { margin: 0 0 .4rem; color: var(--fg); }
+    blockquote p:last-child { margin: 0; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88em; background: #232834; padding: .1em .35em; border-radius: 4px; color: #c6d4f5;
+    }
+    figure { margin: 1.25rem 0; }
+    figure img {
+      display: block; width: 100%; height: auto; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--card);
+    }
+    figcaption { font-size: .8rem; color: var(--muted); margin-top: .45rem; text-align: center; }
+    .table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { border: 1px solid var(--line); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+    th { background: var(--card); color: var(--fg); }
+    td { color: var(--muted); }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li label { display: flex; gap: .5rem; align-items: flex-start; }
+    .checklist input { margin-top: .35rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0 1.5rem; }
+    .btn {
+      display: inline-block; padding: .55rem 1rem; border-radius: 999px;
+      background: var(--card); border: 1px solid var(--line); color: var(--accent);
+      text-decoration: none; font-size: .92rem; font-weight: 600;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: #243044; }
+    .lead { color: var(--muted); margin-bottom: 0.5rem; }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem; }
+    a.ai-tag {
+      display: inline-flex; align-items: center;
+      font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+      text-decoration: none; color: #a8d4ff;
+      background: #1e2a3a; border: 1px solid #35506e;
+      border-radius: 999px; padding: .15rem .55rem; margin-left: .35rem;
+    }
+    a.ai-tag:hover { border-color: #8ab4f8; }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+
+    pre, pre code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .85rem; line-height: 1.5;
+    }
+    pre {
+      background: #232834; border: 1px solid var(--line);
+      border-radius: 10px; padding: .9rem 1.05rem;
+      overflow-x: auto; color: #c6d4f5; margin: 1rem 0 1.25rem;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+    .yaw-note {
+      margin: 1.25rem 0 1.5rem;
+      padding: 1.05rem 1.2rem 1.15rem;
+      background: #182030;
+      border: 1px solid #35506e;
+      border-radius: 14px;
+    }
+    .yaw-note h3 {
+      margin: 0 0 .7rem; border: 0; padding: 0;
+      color: #8ab4f8; font-size: 1.02rem;
+    }
+    .yaw-note p, .yaw-note li { color: #c5cbd3; }
+    .yaw-note p:last-child { margin-bottom: 0; }
+    .yaw-note ul { margin-bottom: .85rem; }
+    .yaw-diagram {
+      margin: .4rem 0 1rem;
+      background: #12161e;
+      border: 1px solid #2a2f3a;
+      border-radius: 10px;
+      padding: .55rem .4rem .2rem;
+    }
+    .yaw-diagram svg { display: block; width: 100%; height: auto; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="index.html">几何节点那些事</a> · 第 3 课 · <a href="https://ptsly.com/courses/geometry-nodes/l03.html">ptsly.com</a></nav>
+    <div class="actions">
+      <a class="btn primary" href="blends/L03_read_editor_and_viewer.blend" download>下载案例 .blend</a>
+      <a class="btn" href="lessons/L03_read_editor_and_viewer.md">查看 Markdown 源文件</a>
+      <a class="btn" href="lesson2.html">← 第 2 课</a>
+    </div>
+<h1>第 3 课 · 读节点编辑器与 Viewer：插座颜色、连线、用手电筒看清中间结果</h1>
+<blockquote>
+<p><strong>衔接说明</strong><br />
+第 1 课你已经会：打开 <strong>Geometry Node Editor</strong>、挂修改器、造出第一块网格。<br />
+第 2 课你已经会：<strong>Transform Geometry</strong> 整块挪动，以及 <strong>Join Geometry</strong> 把两件拼成一件。<br />
+今天不讲 Field 公式，也不讲 Instance on Points。我们只练一件「修水管必备技能」：<br />
+<strong>读懂节点编辑器里的插座与连线，并用 Viewer（查看器）当手电筒，确认某一截水管里现在流着什么。</strong><br />
+目标软件：<strong>Blender 5.2 LTS</strong>。节点名用 <strong>英文官方名</strong>，旁边用中文解释。</p>
+</blockquote>
+<hr />
+<h2>这节课你要带走什么</h2>
+<p>学完这一课，你应该能自信地说出并亲手做到：</p>
+<ol>
+<li><strong>认插座颜色 / 形状</strong>：至少能辨认 <strong>Geometry</strong>（几何）、<strong>Float</strong>（浮点）、<strong>Vector</strong>（向量）；知道颜色对不上就连不上。</li>
+<li><strong>读连线（noodles）</strong>：知道 Geometry 粗线是主水管，Float / Vector 是旋钮线；读树时先跟主水管。</li>
+<li><strong>会用 Viewer（查看器）</strong>：能加一个 Viewer，接到中间某个 Geometry 插座上，让视口临时显示「那一阶段」的几何。</li>
+<li><strong>分清 Viewer 与 Group Output</strong>：Viewer 是手电筒（临时照看），Group Output 是交卷（最终结果）；两者可以同时存在。</li>
+<li><strong>会排查</strong>：故意断一根线或看错阶段时，能用 Viewer 对比「Join 前」和「Join 后」，把问题定位到某一截。</li>
+</ol>
+<p><strong>本课故意不讲：</strong> Field 怎么算、Attribute、Instance on Points、Set Position 逐点公式。Field 插座今天只「认个脸」，深讲留后课。</p>
+<hr />
+<h2>先讲为什么：看不见中间结果就只能盲猜</h2>
+<p>第 2 课的树已经有两条泳道、一个 Join、一个整体 Yaw。<br />
+树一长，最常见的崩溃不是「不会加节点」，而是：</p>
+<blockquote>
+<p>「我明明接了，为什么视口里只有一件？是 Scale 成 0 了，还是根本没进 Join？」</p>
+</blockquote>
+<p>如果只能看见 <strong>Group Output</strong> 吐出来的最终画面，你就像只看得到水龙头，却看不到中间哪节管子堵了。</p>
+<p><strong>Viewer</strong> 的作用，就是给你一支手电筒：<br />
+插在某一截 Geometry 线上，视口立刻改看「流到这里为止」的东西。<br />
+照一下 Join 前——也许只有蓝球；再照一下 Join 后——应是方块+球。对比一出，问题自己现身。</p>
+<p>今天我们用「读编辑器 + 手电筒」把第 2 课那棵树读透，顺便把插座颜色这件事一次讲清。</p>
+<hr />
+<h2>案例先打开：先看结果，再拆菜谱</h2>
+<p>请在云电脑打开：</p>
+<p><code>C:\Users\Grace\Documents\GeometryNodesCourse\blends\L03_read_editor_and_viewer.blend</code></p>
+<p>场景主物体名：**<code>L03_Read_Editor_Viewer</code>**。<br />
+节点组同名：**<code>L03_Read_Editor_Viewer</code>**。</p>
+<p>选中物体，看 <strong>Modifier Properties</strong>（和 L02 同款三个旋钮，默认略有调整）：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认大约</th>
+<th>你拧它时会发生什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gap</strong></td>
+<td>0.9</td>
+<td>上层球沿 Z 升高 / 降低</td>
+</tr>
+<tr>
+<td><strong>TopScale</strong></td>
+<td>0.5</td>
+<td>上层球整体变大 / 变小</td>
+</tr>
+<tr>
+<td><strong>Yaw</strong></td>
+<td>0.35</td>
+<td>整件绕 Z 旋转；单位是 <strong>弧度</strong>（0.35 ≈ 20°）</td>
+</tr>
+</tbody>
+</table></div>
+
+<aside class="yaw-note">
+  <h3>小科普：Yaw 是什么？</h3>
+  <p>第 2 课起，修改器上那个叫 <strong>Yaw</strong> 的旋钮，并不是一种新节点，只是我们给「绕竖直轴转多少」起的名字。</p>
+  <p>这个词来自飞行姿态里的三个旋转：</p>
+  <ul>
+    <li><strong>Yaw 偏航</strong>：绕竖直轴转，像人站着左转右转，或飞机在水平面上掉头。</li>
+    <li><strong>Pitch 俯仰</strong>：绕左右横轴点头，抬头或低头。</li>
+    <li><strong>Roll 滚转</strong>：绕前后纵轴侧倾，像飞机摆翅膀。</li>
+  </ul>
+  <div class="yaw-diagram" aria-hidden="true">
+    <svg viewBox="0 0 540 170" role="img" xmlns="http://www.w3.org/2000/svg">
+      <text x="90" y="22" text-anchor="middle" fill="#8ab4f8" font-size="13" font-weight="600">Yaw 偏航</text>
+      <text x="270" y="22" text-anchor="middle" fill="#9aa0a6" font-size="13" font-weight="600">Pitch 俯仰</text>
+      <text x="450" y="22" text-anchor="middle" fill="#9aa0a6" font-size="13" font-weight="600">Roll 滚转</text>
+      <!-- Yaw: top view, rotation around vertical (drawn as circular arrow on ground) -->
+      <ellipse cx="90" cy="100" rx="48" ry="18" fill="none" stroke="#3d4d66" stroke-width="1.5"/>
+      <line x1="90" y1="55" x2="90" y2="130" stroke="#8ab4f8" stroke-width="2"/>
+      <polygon points="90,50 85,60 95,60" fill="#8ab4f8"/>
+      <text x="90" y="148" text-anchor="middle" fill="#9aa0a6" font-size="11">绕竖直轴（Blender 的 Z）</text>
+      <path d="M 122 92 A 34 14 0 1 1 122 108" fill="none" stroke="#e8eaed" stroke-width="2"/>
+      <polygon points="122,108 116,101 128,103" fill="#e8eaed"/>
+      <rect x="74" y="88" width="32" height="20" rx="3" fill="#243044" stroke="#8ab4f8"/>
+      <!-- Pitch: side view, nod -->
+      <line x1="230" y1="100" x2="310" y2="100" stroke="#3d4d66" stroke-width="1.5"/>
+      <line x1="270" y1="70" x2="270" y2="130" stroke="#5f6b7a" stroke-width="1.5"/>
+      <path d="M 250 78 A 28 28 0 0 1 290 78" fill="none" stroke="#e8eaed" stroke-width="2"/>
+      <polygon points="290,78 282,74 284,86" fill="#e8eaed"/>
+      <rect x="254" y="90" width="32" height="20" rx="3" fill="#243044" stroke="#5f6b7a"/>
+      <text x="270" y="148" text-anchor="middle" fill="#9aa0a6" font-size="11">绕左右横轴，点头</text>
+      <!-- Roll: front view, tilt wings -->
+      <line x1="410" y1="100" x2="490" y2="100" stroke="#3d4d66" stroke-width="1.5"/>
+      <path d="M 422 86 A 30 22 0 0 0 478 86" fill="none" stroke="#e8eaed" stroke-width="2"/>
+      <polygon points="478,86 468,84 472,94" fill="#e8eaed"/>
+      <rect x="434" y="90" width="32" height="20" rx="3" fill="#243044" stroke="#5f6b7a"/>
+      <line x1="420" y1="100" x2="504" y2="100" stroke="#c6d4f5" stroke-width="2"/>
+      <text x="450" y="148" text-anchor="middle" fill="#9aa0a6" font-size="11">绕前后纵轴，侧倾</text>
+    </svg>
+  </div>
+  <p>Blender 默认是 <strong>Z 轴朝上</strong>，所以绕 Z 转就是在「地面」上转圈，和偏航是同一回事。本课案例里，Yaw 接在 <strong>Join 之后</strong>，底座和球会一起转。</p>
+  <p>单位仍是第 2 课说过的 <strong>弧度</strong>：默认 0.35 ≈ 20°，拧到约 1.57 就是转了 90°。</p>
+</aside>
+
+<p>打开 Geometry Node Editor，在节点组里你会看到：<br />
+除了熟悉的 Cube / UV Sphere / Transform / Join 之外，还有一个已经接好的 <strong>Viewer</strong>，挂在「上层 Transform 之后、Join 之前」。<br />
+那就是本课预埋的手电筒——先别急着删，后面会带你拧它、静音它、换插口。</p>
+<p>案例渲染参考（Eevee 棚拍光，<strong>保持原样</strong>）：</p>
+<figure><img src="assets/L03/01_viewport_case_result.jpg" alt="案例最终结果 · 斜角" loading="lazy" /><figcaption>案例最终结果 · 斜角</figcaption></figure>
+<figure><img src="assets/L03/02_viewport_with_viewer_mid.jpg" alt="手电筒看「Join 前上层」时的等价画面" loading="lazy" /><figcaption>手电筒看「Join 前上层」时的等价画面</figcaption></figure>
+<blockquote>
+<p>说明：第一张是 <strong>Group Output</strong> 交卷后的整件（底座+球）。<br />
+第二张用场景里的辅助物体 <code>L03_Viewer_Mid_Preview</code> 渲染，模拟 <strong>Viewer 插在 Join 前</strong> 时视口会强调的「只剩上层球」阶段（真实 Viewer 是编辑器里的临时预览，渲染器不会直接「拍出 Viewer」；这张是教学对照）。<br />
+你本机主题、角度不同，颜色阴影略有差别完全正常。</p>
+</blockquote>
+<p>文件里还有一个隐藏的辅助物体 **<code>L03_Viewer_Mid_Preview</code>**（默认在视口/渲染中隐藏）。它只输出「上层球 Transform 后」的几何，方便你对照理解；本课操作主战场仍是主物体上的 Viewer 节点。</p>
+<hr />
+<h2>概念一：插座颜色对照</h2>
+<p>请先看概念图：</p>
+<figure><img src="assets/L03/03_socket_colors.jpg" alt="插座颜色对照卡" loading="lazy" /><figcaption>插座颜色对照卡</figcaption></figure>
+<h3>一句话</h3>
+<blockquote>
+<p><strong>颜色</strong>告诉你数据类型（Geometry / Float / Vector…）；<strong>形状</strong>另说一件事：圆 ≈ 单个值，菱形 ≈ Field（每个点可以不一样）。<br />
+类型不匹配，Blender 就不让你连——这不是坏了，是编辑器在保护你。</p>
+</blockquote>
+<h3>先分清两件事（5.2 界面）</h3>
+<ol>
+<li><strong>颜色 = 类型</strong><br />
+青蓝 / 青绿 ≈ Geometry（整块几何）；灰 ≈ Float；蓝紫 ≈ Vector；绿 ≈ Integer；粉 ≈ Boolean……</li>
+<li><strong>形状 = 单个值还是 Field</strong>
+<ul>
+<li><strong>圆</strong>：单个常数（整根水管一个数）</li>
+<li><strong>菱形</strong>：Field（每个点可以不同）</li>
+<li><strong>方口 / 偏方</strong>：常见于 Geometry 这类「整块数据」插座（例如 Cube 的 <strong>Mesh</strong> 输出）——<strong>不是菱形</strong></li>
+</ul></li>
+</ol>
+<blockquote>
+<p>旧稿曾把 Geometry 写成「偏菱形」，那是错的。请以你软件里 Cube 上那个青蓝 <strong>方口 Mesh</strong> 为准。</p>
+</blockquote>
+<h3>本课要认得的几张「脸」</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>英文类型</th>
+<th>常见样子（约，Blender 5.2）</th>
+<th>中文直觉</th>
+<th>本课例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Geometry</strong></td>
+<td>青蓝 / <strong>方口</strong></td>
+<td>一整块几何（网格等）</td>
+<td>Cube 的 Mesh 输出、Join 的入口</td>
+</tr>
+<tr>
+<td><strong>Float</strong></td>
+<td>灰色圆（或菱形 Field）</td>
+<td>一个小数</td>
+<td>Gap、TopScale、Yaw</td>
+</tr>
+<tr>
+<td><strong>Vector</strong></td>
+<td>蓝紫圆（或菱形 Field）</td>
+<td>三个数绑在一起</td>
+<td>Translation、Scale、Rotation；Cube 的 UV Map 常是紫色菱形</td>
+</tr>
+<tr>
+<td><strong>Integer</strong></td>
+<td>绿系圆</td>
+<td>整数</td>
+<td>Vertices X/Y/Z、段数</td>
+</tr>
+<tr>
+<td><strong>Boolean</strong></td>
+<td>粉红系圆</td>
+<td>开 / 关</td>
+<td>Shade Smooth 的开关</td>
+</tr>
+<tr>
+<td><strong>Color</strong></td>
+<td>黄/紫系</td>
+<td>颜色</td>
+<td>本课不深讲</td>
+</tr>
+<tr>
+<td><strong>Material</strong></td>
+<td>偏暖</td>
+<td>材质数据块</td>
+<td>Set Material 的 Material 口</td>
+</tr>
+<tr>
+<td><strong>Field</strong>（预告）</td>
+<td><strong>同色菱形</strong></td>
+<td>「每个点一张便签」</td>
+<td><strong>后课再学</strong>；今天只认「菱形 ≠ Geometry」</td>
+</tr>
+</tbody>
+</table></div>
+<h3>重要边界（先记住）</h3>
+<ul>
+<li><strong>同色 / 兼容</strong> → 通常能连。</li>
+<li><strong>Geometry 连到 Float</strong> → 拉不过去。</li>
+<li>有些转换节点可以「翻译」类型，但那是后话；本课先养成 <strong>先看颜色再连线</strong> 的习惯。</li>
+<li>概念对照卡已按 Blender 5.2 重绘：Geometry = 青蓝<strong>方口</strong>；圆 = 单值；菱形 = Field。</li>
+</ul>
+<hr />
+<h2>概念二：连线（noodles）与类型匹配</h2>
+<h3>连线是什么</h3>
+<p>节点之间的曲线叫 <strong>noodles</strong>（面条线 / 连线）。<br />
+在 Geometry Nodes 里，你可以把它想成 <strong>水管</strong>：</p>
+<ul>
+<li><strong>Geometry 线</strong>：主水管，流着「东西本身」。</li>
+<li><strong>Float / Vector 线</strong>：旋钮线，流着「怎么扭、扭多少」。</li>
+</ul>
+<h3>怎么连、怎么断</h3>
+<ul>
+<li><strong>连</strong>：从输出插座拖到输入插座（类型要匹配）。</li>
+<li><strong>断</strong>：抓着线扯下来，或选中后删除。</li>
+<li><strong>换插</strong>：拖到新插座上；旧连接通常会断开（视具体插座而定）。</li>
+</ul>
+<h3>读树时的优先级</h3>
+<p>面对一棵乱树，请按这个顺序：</p>
+<ol>
+<li>先找 <strong>Geometry 主水管</strong>：从基本体 → Transform → Join → Output。</li>
+<li>再回头看 <strong>Gap / TopScale / Yaw</strong> 这些 Float 是从 Group Input 插进哪根旋钮的。</li>
+<li>不要一上来就盯着所有小线——会晕。</li>
+</ol>
+<p>这和读电路图一样：<strong>先跟电源主线，再跟开关支线。</strong></p>
+<hr />
+<h2>概念三：Viewer 当手电筒</h2>
+<p>请看概念图：</p>
+<figure><img src="assets/L03/04_viewer_flashlight.jpg" alt="Viewer 手电筒" loading="lazy" /><figcaption>Viewer 手电筒</figcaption></figure>
+<h3>一句话</h3>
+<blockquote>
+<p><strong>Viewer = 插在节点树中间的手电筒。</strong><br />
+它让视口临时显示「流到这一截为止」的 Geometry；<br />
+<strong>Group Output</strong> 仍然是最终交卷，不会因为你打开手电筒就丢了。</p>
+</blockquote>
+<h3>怎么加 Viewer</h3>
+<p>常用两种方式（Blender 5.2）：</p>
+<ol>
+<li><strong>菜单</strong>：在节点编辑器里 <code>Shift+A</code> → <strong>Output</strong> → <strong>Viewer</strong>。</li>
+<li><strong>快捷</strong>：<code>Ctrl+Shift+点击</code> 某个节点的输出（或节点本身，视keymap），常会自动挂上 / 切到 Viewer。</li>
+</ol>
+<p>案例文件里已经放好了一个 Viewer，标签类似：<strong>「Viewer · 手电筒（Join 前上层）」</strong>。</p>
+<h3>接到哪里</h3>
+<p>把 <strong>Geometry</strong> 线接到 Viewer 的 Geometry 入口。<br />
+本课预埋位置：<strong>上层 Transform Geometry 的输出 → Viewer</strong>（在 Join <strong>之前</strong>）。</p>
+<p>于是：</p>
+<ul>
+<li>手电筒打开时，视口强调的是「已经摆好、缩放过、但还没和底座 Join」的上层球。</li>
+<li>Group Output 那条路仍然完整：Join → Yaw → 交卷。</li>
+</ul>
+<h3>视口会显示什么</h3>
+<ul>
+<li><strong>有活动的 Viewer 且接着有效 Geometry</strong>：视口按 Viewer 预览（编辑器上下文中）。</li>
+<li><strong>静音（Mute）或删掉 Viewer / 断开线</strong>：视口回到看 Group Output 的最终结果。</li>
+</ul>
+<h3>静音与删除</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>选中 Viewer，按 <strong>M</strong>（Mute）</td>
+<td>暂时关掉手电筒，线还在，随时再开</td>
+</tr>
+<tr>
+<td>删除 Viewer 节点</td>
+<td>手电筒拿走；不影响主水管（只要你没误删主线）</td>
+</tr>
+<tr>
+<td>把 Viewer 改接到别的 Geometry 口</td>
+<td>手电筒换地方照</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Viewer vs Group Output（务必分清）</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Viewer</strong></th>
+<th><strong>Group Output</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>角色</td>
+<td>手电筒 / 临时预览</td>
+<td>交卷 / 修改器真正输出</td>
+</tr>
+<tr>
+<td>能不能有多个</td>
+<td>可以加多个，通常一个「当前活动」的最醒目</td>
+<td>一组节点一般一个 Geometry 结果口</td>
+</tr>
+<tr>
+<td>渲染 / 导出看谁</td>
+<td>一般不直接当最终渲染结果</td>
+<td><strong>最终结果看它</strong></td>
+</tr>
+<tr>
+<td>教学用法</td>
+<td>查中间阶段、对比前后</td>
+<td>交付整件</td>
+</tr>
+</tbody>
+</table></div>
+<p>口诀：<strong>手电筒用来查案，Output 用来交卷。</strong></p>
+<hr />
+<h2>手把手：在案例树上用 Viewer 查两处</h2>
+<p>下面假设你已打开案例 <code>L03_Read_Editor_Viewer</code>，节点编辑器里能看见整棵树。</p>
+<h3>步骤 A：先确认预埋的手电筒</h3>
+<ol>
+<li>找到标签含 <strong>Viewer</strong>、接在上层 Transform 后面的那个节点。</li>
+<li>确认它的 Geometry 入口来自 <strong>Transform Geometry (top)</strong>，而不是来自 Join 之后。</li>
+<li>在节点编辑器里让这个 Viewer 处于可用状态（若被 Mute，再按一次 <strong>M</strong> 取消静音）。</li>
+<li>观察视口：你应更明显地感到「现在在看上层球这一阶段」（若界面仍显示整件，检查是否选中了带该节点组的物体、以及 Viewer 是否接好）。</li>
+</ol>
+<h3>步骤 B：把手电筒改插到 Join 之后</h3>
+<ol>
+<li>断开 Viewer 与上层 Transform 之间的线（或另加一个 Viewer，避免弄乱预埋）。</li>
+<li>从 <strong>Join Geometry</strong> 的 Geometry 输出，拖一根线到 Viewer。</li>
+<li>此时手电筒照的是「已经拼好、但可能还没过最终 Yaw」或「Join 出口」——应能看到底座+球都在。</li>
+<li>再对比步骤 A：Join 前只有上层；Join 后是整件。<br />
+<strong>这一对比，就是 Viewer 存在的全部意义。</strong></li>
+</ol>
+<h3>步骤 C：再照一次最终 Yaw 之后（可选）</h3>
+<ol>
+<li>把 Viewer 接到 <strong>Transform Geometry (Yaw)</strong> 的输出（Group Output 正前方）。</li>
+<li>这应与最终交卷几乎一致——你在确认「最后一截水管也是通的」。</li>
+</ol>
+<h3>步骤 D：静音，回到交卷视图</h3>
+<ol>
+<li>选中 Viewer，按 <strong>M</strong> 静音。</li>
+<li>视口回到 Group Output 的最终整件。</li>
+<li>再按 <strong>M</strong> 恢复手电筒。</li>
+</ol>
+<p>养成习惯：<strong>查完就静音</strong>，避免自己忘记「为什么视口只显示半件」。</p>
+<hr />
+<h2>怎么读一整棵树</h2>
+<p>请看概念图：</p>
+<figure><img src="assets/L03/05_read_a_tree.jpg" alt="怎么读一整棵树" loading="lazy" /><figcaption>怎么读一整棵树</figcaption></figure>
+<h3>三步阅读法</h3>
+<ol>
+<li><strong>从左往右扫</strong><br />
+Group Input 在左，Group Output 在右。先找到水源：本课是 <strong>Cube</strong> 与 <strong>UV Sphere</strong>。</li>
+<li><strong>只跟 Geometry 粗线</strong><br />
+底座：<code>Cube → … → Transform → Join</code><br />
+上层：<code>UV Sphere → … → Transform → Join</code><br />
+汇合：<code>Join → Transform(Yaw) → Group Output</code><br />
+旋钮线（Gap / TopScale / Yaw）第二遍再读。</li>
+<li><strong>卡住 → 上手电筒</strong><br />
+怀疑 Join？照 Join 前、Join 后。<br />
+怀疑上层 Transform？照 Transform 前、后。<br />
+不要凭空猜，让视口举证。</li>
+</ol>
+<h3>本课案例阅读顺序（对照文件）</h3>
+<pre><code>Cube 泳道 ──┐
+            ├─ Join → Yaw Transform → Group Output
+UV Sphere ──┘
+     │
+     └─（支路）Viewer 手电筒可插在这里查「Join 前上层」</code></pre>
+<p>口诀：<strong>水源 → 摆放 →（可选手电筒）→ 拼装 → 整体调整 → 交卷。</strong></p>
+<hr />
+<h2>小练习（做完才算上完课）</h2>
+<ol>
+<li><strong>故意断一根线</strong><br />
+断开上层 Transform → Join 的 Geometry 线。<br />
+最终视口应只剩底座（或缺上层）。<br />
+用 Viewer 分别照「上层 Transform 出口」和「Join 出口」，用嘴巴说出两处差别。<br />
+做完把线接回去。</li>
+<li><strong>手电筒搬家</strong><br />
+把 Viewer 从「Join 前」改到「Join 后」，再改到「Yaw 后」。<br />
+每搬一次，写三个字笔记：看见了什么。</li>
+<li><strong>（可选）第二支手电筒</strong><br />
+再加一个 Viewer，一只照上层，一只照底座（底座 Transform 出口）。<br />
+体会：多支手电筒时，你要清楚「当前活动的是哪一只」（以你视口实际预览为准）。</li>
+<li><strong>（可选）对照辅助物体</strong><br />
+在 Outliner 里临时取消隐藏 <code>L03_Viewer_Mid_Preview</code>，对比主物体最终结果——那是「Join 前上层」的长期可见版；看完请重新隐藏，避免场景打架。</li>
+</ol>
+<hr />
+<h2>常见卡点</h2>
+<h3>1. 加了 Viewer，视口没变化</h3>
+<ul>
+<li>物体是否选中？节点组是否就是当前修改器用的那一个？</li>
+<li>Viewer 的 Geometry 入口是否真的接上了？</li>
+<li>Viewer 是否被 <strong>Mute</strong> 了？</li>
+<li>是否接错到空的 / 被静音的上游？</li>
+</ul>
+<h3>2. 线怎么都拉不到 Viewer 上</h3>
+<ul>
+<li>你拖的是不是 <strong>Geometry</strong> 输出？Float 拖不过去是正常的。</li>
+<li>Blender 5.2 的 Viewer 用动态插座：先确保 Viewer 上有 Geometry 类入口（案例里已建好；若自己新建后是空的，可再连一次 Geometry 或检查 Viewer items）。</li>
+</ul>
+<h3>3. 手电筒一直开着，我以为树坏了</h3>
+<ul>
+<li>视口只显示半件时，先看有没有活动的 Viewer。</li>
+<li><strong>先按 M 静音</strong>，再判断树是否真的坏了。</li>
+</ul>
+<h3>4. Viewer 和 Group Output 我分不清谁说了算</h3>
+<ul>
+<li><strong>修改器最终结果 / 渲染交卷</strong> → 看 Group Output。</li>
+<li><strong>编辑时临时预览中间阶段</strong> → 看 Viewer。</li>
+<li>两者同时存在完全正常。</li>
+</ul>
+<h3>5. 和案例第二张图不一致</h3>
+<ul>
+<li>第二张是「Join 前上层」的教学对照渲染，不是要求你像素级对齐。</li>
+<li>以「Viewer 插在不同位置时，阶段是否变对」为准。</li>
+</ul>
+<h3>6. 想深挖 Field 菱形插座</h3>
+<ul>
+<li>先忍住。今天只认脸。Field 一展开就是另一门课；我们按从零节奏走。</li>
+</ul>
+<hr />
+<h2>收工检查清单</h2>
+<ul class="checklist">
+<li><label><input type="checkbox" disabled /> 能说出至少 Geometry / Float / Vector 三种插座在干什么</label></li>
+<li><label><input type="checkbox" disabled /> 知道类型不匹配时连不上是保护，不是故障</label></li>
+<li><label><input type="checkbox" disabled /> 会添加 Viewer，并接到中间 Geometry 插座</label></li>
+<li><label><input type="checkbox" disabled /> 能分清 Viewer（手电筒）与 Group Output（交卷）</label></li>
+<li><label><input type="checkbox" disabled /> 会 Mute / 换插口，并用「Join 前 vs Join 后」对比排查</label></li>
+<li><label><input type="checkbox" disabled /> 完成「故意断线 + Viewer 定位」小练习</label></li>
+</ul>
+<hr />
+<h2>下节预告</h2>
+<p>第 4 课我们继续留在「整块几何」的世界里，但多问一个关键：</p>
+<p><strong>Set Position 与 Transform Geometry 的差别（仍用 Viewer 验证）</strong></p>
+<ul>
+<li>Transform：整块一起挪 / 转 / 缩放（你已会）。</li>
+<li>Set Position：开始碰「位置」插座——我们会用最朴素的方式做整块偏移对比，<strong>仍然不讲 Field 公式</strong>。</li>
+<li>全程继续用手电筒确认：改的是哪一截、视口该看到什么。</li>
+</ul>
+<p>Field 深水继续后移；先把「整块变换 vs 写位置」的边界立住。</p>
+<hr />
+<h2>本课文件一览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>课件</td>
+<td><code>lessons/L03_read_editor_and_viewer.md</code></td>
+</tr>
+<tr>
+<td>案例</td>
+<td><code>blends/L03_read_editor_and_viewer.blend</code></td>
+</tr>
+<tr>
+<td>配图</td>
+<td><code>assets/L03/</code>（视口/对照渲染 ×2 + 概念图 ×3）</td>
+</tr>
+<tr>
+<td>脚本</td>
+<td><code>scripts/create_L03.py</code>、<code>scripts/gen_l03_illustrations.py</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Google Drive 同步文件夹：课程根目录 <code>GeometryNodesCourse</code>（与云电脑同结构）。</p>
+<hr />
+<p><em>L03 · Read the Node Editor &amp; Viewer · Blender 5.2 LTS</em></p>
+    <footer>斯坦圣 · <a href="https://ptsly.com/" style="color:var(--accent)">ptsly.com</a></footer>
+  </div>
+</body>
+</html>
