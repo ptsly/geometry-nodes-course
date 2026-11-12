@@ -66,8 +66,6 @@
 
 案例文件：[L01_first_geometry_nodes_tree.blend](../blends/L01_first_geometry_nodes_tree.blend)
 
-（若你在课程同步盘里学习，路径也常见为：`…/GeometryNodesCourse/blends/L01_first_geometry_nodes_tree.blend`）
-
 场景里有一个物体，名字叫 **`L01_First_Tree`**。
 
 选中它，看右侧 **Modifier Properties（修改器属性）**：

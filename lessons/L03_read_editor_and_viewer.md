@@ -42,9 +42,9 @@
 
 ## 案例先打开：先看结果，再拆菜谱
 
-请在云电脑打开：
+请先下载并打开案例文件：
 
-`C:\Users\Grace\Documents\GeometryNodesCourse\blends\L03_read_editor_and_viewer.blend`
+案例文件：[L03_read_editor_and_viewer.blend](../blends/L03_read_editor_and_viewer.blend)
 
 场景主物体名：**`L03_Read_Editor_Viewer`**。  
 节点组同名：**`L03_Read_Editor_Viewer`**。

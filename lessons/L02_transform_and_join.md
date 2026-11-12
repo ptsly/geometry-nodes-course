@@ -39,9 +39,9 @@ Transform 负责「摆」，Join 负责「拼」。
 
 ## 案例先打开：先看结果，再拆菜谱
 
-请在云电脑打开：
+请先下载并打开案例文件：
 
-`C:\Users\Grace\Documents\GeometryNodesCourse\blends\L02_transform_and_join.blend`
+案例文件：[L02_transform_and_join.blend](../blends/L02_transform_and_join.blend)
 
 场景主物体名：**`L02_Transform_Join`**。  
 节点组同名：**`L02_Transform_Join`**。
