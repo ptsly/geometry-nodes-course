@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第 4 课 · Set Position 与 Transform Geometry · 几何节点那些事</title>
+  <meta name="description" content="Blender 5.2 几何节点第 4 课：Set Position 与 Transform Geometry，整块搬走 vs 给每个点改地址。" />
+  <style>
+    :root {
+      --bg: #0f1115; --fg: #e8eaed; --muted: #9aa0a6; --accent: #8ab4f8;
+      --card: #1a1d24; --line: #2a2f3a; --quote: #232834;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "PingFang SC", "Noto Sans SC", sans-serif;
+      background: radial-gradient(1200px 600px at 12% -8%, #1b2433 0%, var(--bg) 55%);
+      color: var(--fg); line-height: 1.7;
+    }
+    .wrap { max-width: 44rem; margin: 0 auto; padding: 2.5rem 1.35rem 4rem; }
+    nav { font-size: .9rem; margin-bottom: 1.25rem; color: var(--muted); }
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    h1 { font-size: clamp(1.45rem, 4vw, 1.85rem); font-weight: 650; letter-spacing: -.02em; line-height: 1.35; margin: 0 0 1rem; }
+    h2 { font-size: 1.2rem; margin: 2rem 0 .75rem; color: var(--fg); border-bottom: 1px solid var(--line); padding-bottom: .4rem; }
+    h3 { font-size: 1.05rem; margin: 1.4rem 0 .5rem; color: var(--accent); }
+    p { margin: 0 0 .85rem; color: var(--muted); }
+    p strong, li strong, td strong { color: var(--fg); }
+    ul, ol { color: var(--muted); margin: 0 0 1rem; padding-left: 1.25rem; }
+    li { margin-bottom: .35rem; }
+    hr { border: 0; border-top: 1px solid var(--line); margin: 1.75rem 0; }
+    blockquote {
+      margin: 1rem 0; padding: .85rem 1.1rem; background: var(--quote);
+      border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+    }
+    blockquote p { margin: 0 0 .4rem; color: var(--fg); }
+    blockquote p:last-child { margin: 0; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .88em; background: #232834; padding: .1em .35em; border-radius: 4px; color: #c6d4f5;
+    }
+    figure { margin: 1.25rem 0; }
+    figure img {
+      display: block; width: 100%; height: auto; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--card);
+    }
+    figcaption { font-size: .8rem; color: var(--muted); margin-top: .45rem; text-align: center; }
+    .table-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { border: 1px solid var(--line); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+    th { background: var(--card); color: var(--fg); }
+    td { color: var(--muted); }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li label { display: flex; gap: .5rem; align-items: flex-start; }
+    .checklist input { margin-top: .35rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1rem 0 1.5rem; }
+    .btn {
+      display: inline-block; padding: .55rem 1rem; border-radius: 999px;
+      background: var(--card); border: 1px solid var(--line); color: var(--accent);
+      text-decoration: none; font-size: .92rem; font-weight: 600;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: #243044; }
+    .lead { color: var(--muted); margin-bottom: 0.5rem; }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: .85rem; }
+    a.ai-tag {
+      display: inline-flex; align-items: center;
+      font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+      text-decoration: none; color: #a8d4ff;
+      background: #1e2a3a; border: 1px solid #35506e;
+      border-radius: 999px; padding: .15rem .55rem; margin-left: .35rem;
+    }
+    a.ai-tag:hover { border-color: #8ab4f8; }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+
+    pre, pre code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: .85rem; line-height: 1.5;
+    }
+    pre {
+      background: #232834; border: 1px solid var(--line);
+      border-radius: 10px; padding: .9rem 1.05rem;
+      overflow-x: auto; color: #c6d4f5; margin: 1rem 0 1.25rem;
+    }
+    pre code { background: none; padding: 0; color: inherit; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="index.html">几何节点那些事</a> · 第 4 课 · <a href="https://ptsly.com/courses/geometry-nodes/l04.html">ptsly.com</a></nav>
+    <div class="actions">
+      <a class="btn primary" href="blends/L04_set_position_vs_transform.blend" download>下载案例 .blend</a>
+      <a class="btn" href="lessons/L04_set_position_vs_transform.md">查看 Markdown 源文件</a>
+      <a class="btn" href="lesson3.html">← 第 3 课</a>
+    </div>
+<h1>第 4 课 · Set Position 与 Transform Geometry：整块搬走 vs 给每个点改地址</h1>
+<blockquote>
+<p><strong>衔接说明</strong><br />
+第 1 课：你打开了 <strong>Geometry Node Editor</strong>，造出第一块网格。<br />
+第 2 课：你用 <strong>Transform Geometry</strong> 把东西整块挪、转、缩，用 <strong>Join Geometry</strong> 拼成一件。<br />
+第 3 课：你学会读插座颜色和连线，还学会用 <strong>Viewer</strong>（查看器）当手电筒，照看树中间某一截。<br />
+今天我们认识一个新节点 <strong>Set Position</strong>（设置位置），并且把它和老朋友 Transform Geometry 摆在一起比一比：<br />
+<strong>它们都能让东西「动起来」，到底差在哪？什么时候该用哪个？</strong><br />
+全程仍然<strong>不讲 Field 公式</strong>，只用最朴素的「填一个数」来做对比，并用 Viewer 举证。<br />
+目标软件：<strong>Blender 5.2 LTS</strong>。节点名用 <strong>英文官方名</strong>，旁边用中文解释。</p>
+</blockquote>
+<hr />
+<h2>这节课你要带走什么</h2>
+<p>学完这一课，你应该能自信地说出并亲手做到：</p>
+<ol>
+<li><strong>说清两者的分工</strong>：Transform Geometry 是「把整块拎起来搬走 / 转 / 缩」；Set Position 是「给每个点改坐标」，它只管位置，不会旋转、不会缩放。</li>
+<li><strong>会用 Set Position 的 Offset 口</strong>：给它一个向量，让每个点都在原地再挪同样一段，结果就是整块平移。</li>
+<li><strong>认识 Position 口的「坑」</strong>：如果往 Position 口里填一个固定值，所有点都会被写到同一个坐标，物体看起来就「消失」了。</li>
+<li><strong>会用 Viewer 验证</strong>：分别照「Set Position 之前」「之后」「Join 之后」，用视口亲眼确认改的是哪一截。</li>
+<li><strong>知道为什么要学 Set Position</strong>：它有一个 Transform 没有的 <strong>Selection</strong> 口，将来能「只挪一部分点」，这是做波浪、碎裂、生长动画的起点（后课讲）。</li>
+</ol>
+<p><strong>本课故意不讲：</strong> Field 怎么算、Position 节点、数学节点、噪波。Selection 和菱形插座今天只「认个脸」。</p>
+<hr />
+<h2>先讲为什么：既然 Transform 能挪，干嘛还要 Set Position？</h2>
+<p>上一课结束时，你已经能用 Transform Geometry 把方块抬高、转个角度。<br />
+这时候冒出一个很自然的问题：</p>
+<blockquote>
+<p>「我已经会挪了，为什么节点菜单里还有一个 Set Position？它也是挪东西的吗？」</p>
+</blockquote>
+<p>答案是：<strong>是，也不是。</strong></p>
+<ul>
+<li>如果你只是想把<strong>整块</strong>东西往上抬 0.8 米，两个节点都能做到，结果一模一样。</li>
+<li>但它们「想事情的方式」完全不同：</li>
+</ul>
+<p>  <strong>Transform Geometry 把整块当成一个整体</strong>，像你用手把一个纸盒拎起来；<br />
+  <strong>Set Position 把东西拆成一个个点</strong>，给每一个点发一张「新地址」便签。</p>
+<p>现在看起来像是绕远路，但「每个点单独发地址」这件事，正是几何节点最强大的地方：<br />
+以后你想让一块平面像水面一样起伏、让一排柱子高低不齐、让一个球表面鼓起来——都是 Set Position 的活，Transform 做不到，因为它只会「全体一起动」。</p>
+<p>今天我们先把边界立住：<strong>只做整体平移时两者等价；一旦涉及旋转缩放，用 Transform；一旦想动「点本身」，用 Set Position。</strong></p>
+<hr />
+<h2>案例先打开：先看结果，再拆菜谱</h2>
+<p>请先下载并打开案例文件：</p>
+<p>案例文件：<a href="blends/L04_set_position_vs_transform.blend">L04_set_position_vs_transform.blend</a></p>
+<p>场景主物体名：<strong><code>L04_SetPos_vs_Transform</code></strong>。<br />
+节点组名：<strong><code>L04_SetPosition_vs_Transform</code></strong>。</p>
+<p>选中物体，看 <strong>Modifier Properties</strong>（修改器面板），你会看到两个旋钮：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认</th>
+<th>你拧它时会发生什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Lift</strong></td>
+<td>0.8</td>
+<td>橙块和蓝块<strong>一起</strong>升高或降低（单位：米）</td>
+</tr>
+<tr>
+<td><strong>Yaw</strong></td>
+<td>0.5</td>
+<td><strong>只有橙块</strong>绕 Z 轴转；蓝块纹丝不动（单位：弧度，0.5 ≈ 29°）</td>
+</tr>
+</tbody>
+</table></div>
+<p>案例渲染参考（Eevee 棚拍光，<strong>保持原样</strong>）：</p>
+<figure><img src="assets/L04/01_viewport_result.jpg" alt="默认参数：两块一样高，只有橙块转了" loading="lazy" /><figcaption>默认参数：两块一样高，只有橙块转了</figcaption></figure>
+<figure><img src="assets/L04/02_viewport_turn_the_knobs.jpg" alt="Lift 调到 1.3、Yaw 调到 0.785：两块一起再升高，橙块转得更多，蓝块依旧端正" loading="lazy" /><figcaption>Lift 调到 1.3、Yaw 调到 0.785：两块一起再升高，橙块转得更多，蓝块依旧端正</figcaption></figure>
+<blockquote>
+<p>观察要点：</p>
+<ul>
+<li>两块方块<strong>高度永远一样</strong>——因为 Lift 同时喂给了两边。这说明「只做平移时，Transform 和 Set Position 效果相同」。</li>
+<li>Yaw 只影响橙块——因为 Yaw 只接在 Transform Geometry 的 Rotation 上，Set Position 根本没有旋转这个口。</li>
+</ul>
+<p>你本机主题、角度不同，颜色阴影略有差别完全正常。</p>
+</blockquote>
+<p>打开 Geometry Node Editor，节点组里有三个用 <strong>Frame</strong>（框）圈起来的区域：</p>
+<ul>
+<li><strong>A 泳道（上）</strong>：Cube → Set Material → <strong>Transform Geometry</strong>（挪 + 转）</li>
+<li><strong>B 泳道（中）</strong>：Cube → Set Material → Transform Geometry（只负责摆到右边）→ <strong>Set Position</strong>（Offset 往上抬）</li>
+<li><strong>C 实验（下）</strong>：Cube → <strong>Set Position</strong>（Position 口写死一个坐标）→ <strong>Viewer</strong>（默认静音）</li>
+</ul>
+<p>A 和 B 在 <strong>Join Geometry</strong> 汇合，交给 <strong>Group Output</strong>。C 不进 Join，它是专门留给你做实验的。</p>
+<hr />
+<h2>概念一：Transform Geometry 和 Set Position 各自在想什么</h2>
+<p>请先看概念图：</p>
+<figure><img src="assets/L04/03_transform_vs_setposition.jpg" alt="Transform Geometry vs Set Position 对照卡" loading="lazy" /><figcaption>Transform Geometry vs Set Position 对照卡</figcaption></figure>
+<h3>Transform Geometry：整块变换</h3>
+<p>你在第 2 课已经很熟了，我们只复习它的「性格」：</p>
+<ul>
+<li>它看到的是<strong>一整块东西</strong>。</li>
+<li>它有三个旋钮：<strong>Translation</strong>（挪）、<strong>Rotation</strong>（转）、<strong>Scale</strong>（缩放）。</li>
+<li>不管你怎么拧，所有点都是<strong>一起</strong>动的，所以形状永远不会被拉歪。</li>
+<li>它<strong>没有 Selection 口</strong>：要么全动，要么不动，不能只动一半。</li>
+</ul>
+<h3>Set Position：给每个点改地址</h3>
+<p>这是今天的新朋友。添加方法：在节点编辑器里按 <code>Shift+A</code>，在 <strong>Geometry → Write</strong> 分类里找到 <strong>Set Position</strong>（也可以直接按 <code>Shift+A</code> 后输入 <code>Set Position</code> 搜索）。</p>
+<p>它有四个输入口，从上到下：</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>输入口</th>
+<th>插座样子（颜色 / 形状）</th>
+<th>中文意思</th>
+<th>今天怎么用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Geometry</strong></td>
+<td>青蓝 / <strong>方口</strong></td>
+<td>要被修改的几何</td>
+<td>接主水管</td>
+</tr>
+<tr>
+<td><strong>Selection</strong></td>
+<td>同色 <strong>菱形</strong>（Field）</td>
+<td>哪些点要被改</td>
+<td><strong>不动它</strong>，默认是「全部点」</td>
+</tr>
+<tr>
+<td><strong>Position</strong></td>
+<td>同色 <strong>菱形</strong>（Field）</td>
+<td>每个点的<strong>新坐标</strong></td>
+<td>今天只在实验 C 里碰它</td>
+</tr>
+<tr>
+<td><strong>Offset</strong></td>
+<td>同色 <strong>菱形</strong>（Field）</td>
+<td>在原坐标上<strong>再加</strong>多少</td>
+<td>今天的主角</td>
+</tr>
+</tbody>
+</table></div>
+<p>记住第 3 课改过的规则：<strong>颜色 = 类型，形状另说一件事</strong>——Geometry 是青蓝方口；Selection / Position / Offset 才是菱形，因为它们能接受 Field（「每个点一张便签」）。<br />
+今天我们不往菱形口里接任何复杂的东西，只给它一个<strong>固定的数</strong>——这时候它就像普通的圆形插座一样，所有点拿到的便签内容都一样。</p>
+<h3>一句话对比</h3>
+<blockquote>
+<p><strong>Transform Geometry 搬的是「整块」；Set Position 改的是「每一个点」。</strong><br />
+当每个点都改同样多的时候，看起来就像整块被搬走了——这就是今天 A、B 两块方块一样高的原因。</p>
+</blockquote>
+<hr />
+<h2>概念二：Offset 和 Position，填同样的数，结果天差地别</h2>
+<p>请看概念图：</p>
+<figure><img src="assets/L04/04_offset_vs_position.jpg" alt="Offset vs Position" loading="lazy" /><figcaption>Offset vs Position</figcaption></figure>
+<p>这是今天最容易踩的坑，请慢慢读。</p>
+<h3>Offset：原地址 + 一段位移</h3>
+<p>把 Offset 填成 <code>(0, 0, 0.8)</code>，意思是：</p>
+<blockquote>
+<p>「每个点，请在你<strong>原来的位置</strong>上，再往 Z 方向挪 0.8。」</p>
+</blockquote>
+<p>方块的 8 个角都往上挪 0.8，它们之间的相对位置没变，所以形状不变，整块升高。<br />
+这和 Transform Geometry 的 Translation 填 <code>(0, 0, 0.8)</code> 结果一模一样。</p>
+<h3>Position：直接改写地址</h3>
+<p>如果你把 <code>(0, 0, 1.5)</code> 填进 <strong>Position</strong> 口（而不是 Offset），意思就变成了：</p>
+<blockquote>
+<p>「每个点，请把你的坐标<strong>改成</strong> (0, 0, 1.5)。」</p>
+</blockquote>
+<p>注意，是「改成」，不是「再加」。8 个角全部被写成同一个坐标，于是它们全挤在一个点上——方块在视口里就「消失」了。它其实还在，只是缩成了一个看不见大小的点。</p>
+<h3>那 Position 口平时为什么能正常工作？</h3>
+<p>你在新加的 Set Position 节点上会发现，Position 口旁边<strong>没有可以填数字的框</strong>。<br />
+这是因为它默认读的是「每个点自己的原坐标」——相当于「把你的地址改成你原来的地址」，所以什么都不变。<br />
+这个「默认读自己的原坐标」就是 Field 的行为，深讲留到后面的课。今天只记住：</p>
+<blockquote>
+<p><strong>想整体挪，用 Offset。Position 一旦填了固定值，所有点都会去同一个地方。</strong></p>
+</blockquote>
+<hr />
+<h2>手把手：自己从零搭一遍 B 泳道</h2>
+<p>案例文件里已经搭好了，但请你在<strong>同一个文件里另外搭一份</strong>，手熟比眼熟重要。</p>
+<h3>步骤 A：准备一块方块</h3>
+<ol>
+<li>在 3D 视口按 <code>Shift+A</code> → <strong>Mesh → Cube</strong> 新建一个方块，按 <code>G</code> <code>X</code> 把它挪到一边，别和案例重叠。</li>
+<li>切到 <strong>Geometry Nodes</strong> 工作区（或任意一个区域改成 Geometry Node Editor），点 <strong>New</strong> 新建节点组。<br />
+你会看到熟悉的 <strong>Group Input → Group Output</strong>，中间连着一根 Geometry 线。</li>
+</ol>
+<h3>步骤 B：插入 Set Position</h3>
+<ol>
+<li><code>Shift+A</code> → 搜索 <code>Set Position</code>，添加节点。</li>
+<li>把它<strong>拖到</strong> Group Input 和 Group Output 之间那根线上，看到线变亮后松手——Blender 会自动帮你接好：<br />
+Group Input 的 Geometry → Set Position 的 Geometry；Set Position 的 Geometry → Group Output。</li>
+<li>此时视口里方块<strong>没有任何变化</strong>。这是对的：Offset 默认是 <code>(0, 0, 0)</code>，Position 默认读原坐标，等于什么都没改。</li>
+</ol>
+<h3>步骤 C：用 Offset 把方块抬起来</h3>
+<ol>
+<li>在 Set Position 节点上找到 <strong>Offset</strong>，点开它的小三角或直接看到 X / Y / Z 三格。</li>
+<li>把 <strong>Z</strong> 改成 <code>1</code>。</li>
+<li>视口里的方块整块升高 1 米。</li>
+</ol>
+<h3>步骤 D：试着「转」它——你会发现做不到</h3>
+<ol>
+<li>在 Set Position 上找一找：有没有 Rotation 或 Scale？——<strong>没有。</strong></li>
+<li>这就是它和 Transform Geometry 最直观的区别：Set Position <strong>只管位置</strong>。<br />
+要转、要缩，请在它前面或后面接一个 <strong>Transform Geometry</strong>。</li>
+</ol>
+<h3>步骤 E：用 Transform Geometry 做同样的事，对比一下</h3>
+<ol>
+<li>再加一个 <strong>Transform Geometry</strong>，接在 Set Position 后面。</li>
+<li>先把 Set Position 的 Offset Z 改回 <code>0</code>，然后把 Transform Geometry 的 <strong>Translation Z</strong> 改成 <code>1</code>。</li>
+<li>方块升高的高度和步骤 C 完全一样。<br />
+<strong>结论：只做平移时，两者等价。</strong></li>
+<li>再拧 Transform Geometry 的 <strong>Rotation Z</strong>，方块转起来了——这是 Set Position 做不到的。</li>
+</ol>
+<hr />
+<h2>手把手：用 Viewer 举证，改的到底是哪一截</h2>
+<p>请看概念图：</p>
+<figure><img src="assets/L04/05_viewer_check_points.jpg" alt="拿 Viewer 验证四个位置" loading="lazy" /><figcaption>拿 Viewer 验证四个位置</figcaption></figure>
+<p>回到案例节点组 <code>L04_SetPosition_vs_Transform</code>。我们用第 3 课学的手电筒，照四个位置：</p>
+<h3>位置 ①：B 泳道 Set Position <strong>之前</strong></h3>
+<ol>
+<li>按 <code>Shift+A</code> → <strong>Output → Viewer</strong> 加一个新的 Viewer（或者 <code>Ctrl+Shift+点击</code> 节点，Blender 会自动挂上）。</li>
+<li>把 B 泳道里「Transform Geometry（只负责摆到右边）」的 Geometry 输出接到 Viewer。</li>
+<li>视口里应该看到：<strong>蓝块在右边，贴着地面，还没升高</strong>。</li>
+</ol>
+<h3>位置 ②：B 泳道 Set Position <strong>之后</strong></h3>
+<ol>
+<li>把 Viewer 改接到 <strong>Set Position (B)</strong> 的 Geometry 输出。</li>
+<li>视口：<strong>蓝块升高了 Lift 那么多</strong>。</li>
+<li>去修改器面板拧一下 <strong>Yaw</strong>——蓝块不会转。这再一次说明：Set Position 只管位置。</li>
+</ol>
+<h3>位置 ③：Join 之后</h3>
+<ol>
+<li>把 Viewer 改接到 <strong>Join Geometry</strong> 的输出。</li>
+<li>视口：橙块 + 蓝块都在，和 Group Output 的最终结果一样。</li>
+</ol>
+<h3>位置 ④：实验 C</h3>
+<ol>
+<li>找到最下面的 <strong>C 实验</strong>框，里面有一个已经接好、但被<strong>静音</strong>（Mute）的 Viewer。</li>
+<li>选中它，按 <code>M</code> 取消静音（如果你刚才加的 Viewer 还开着，先把那个按 <code>M</code> 静音，免得两个手电筒抢镜）。</li>
+<li>视口：<strong>好像什么都没有？</strong> 这就对了。C 实验的 Set Position 把 Position 写成了 <code>(0, 0, 1.5)</code>，方块的 8 个点全被挤到了同一个位置。</li>
+<li>想确认「它确实还在，只是缩成一点」？可以把 C 实验里那个 Vector 节点的值改一改——不管改成什么，都只会是一个点换个地方，永远变不回方块。</li>
+<li>看完后再按一次 <code>M</code> 把它静音，视口回到最终结果。</li>
+</ol>
+<blockquote>
+<p><strong>养成习惯：查完就静音。</strong> 视口里少了东西时，先看看是不是有个手电筒还开着。</p>
+</blockquote>
+<hr />
+<h2>小练习（做完才算上完课）</h2>
+<ol>
+<li><strong>把 Offset 换成负数</strong><br />
+把 B 泳道里 Lift 调成 <code>-0.3</code>。蓝块和橙块会一起往下沉，部分陷进地面。说出为什么两块总是一样高。</li>
+<li><strong>让 B 泳道也能转</strong><br />
+在 B 泳道的 Set Position <strong>后面</strong>加一个 Transform Geometry，把 Rotation Z 拧到 <code>0.5</code>。<br />
+注意：它会绕<strong>世界原点</strong>转，而蓝块不在原点上，所以它会「公转」着跑开一段，而不是原地自转。<br />
+想一想：橙块为什么是原地自转？（提示：A 泳道里，挪和转写在同一个 Transform Geometry 里，Blender 会先转再挪。）</li>
+<li><strong>Position 坑再踩一次</strong><br />
+在你自己搭的那份 Set Position 上，把一个 <strong>Vector</strong> 节点（<code>Shift+A</code> → <strong>Input → Constant → Vector</strong>）接到 <strong>Position</strong> 口。<br />
+用 Viewer 照它，确认方块缩成一个点。然后把线挪到 <strong>Offset</strong> 口，方块恢复成整块平移。用一句话说出两个口的区别。</li>
+<li><strong>（可选）找一找 Selection</strong><br />
+Set Position 上的 <strong>Selection</strong> 口现在是勾选状态（代表「全部点」）。把它取消勾选，会发生什么？<br />
+答案：一个点都不改了，Offset 失效。下下节课我们会给它接真正的「选择条件」，让它只挪一部分点。</li>
+</ol>
+<hr />
+<h2>常见卡点</h2>
+<h3>1. 加了 Set Position，方块一点都没动</h3>
+<ul>
+<li>正常！Offset 默认 <code>(0, 0, 0)</code>，等于没挪。去改 Offset 的 Z。</li>
+<li>检查 <strong>Selection</strong> 是不是被取消勾选了。</li>
+</ul>
+<h3>2. 方块突然「不见了」</h3>
+<ul>
+<li>你很可能把数字填进了 <strong>Position</strong> 口，而不是 <strong>Offset</strong> 口。所有点被写到了同一个坐标。</li>
+<li>也可能有个 Viewer 还开着，正照着实验 C。先找找有没有没静音的 Viewer。</li>
+</ul>
+<h3>3. Set Position 上找不到 Rotation 和 Scale</h3>
+<ul>
+<li>它本来就没有。转和缩请交给 <strong>Transform Geometry</strong>。</li>
+</ul>
+<h3>4. Transform 和 Set Position 的结果为什么一样？我是不是做错了</h3>
+<ul>
+<li>没做错。只做平移、且所有点挪一样多的时候，两者就是等价的。今天要体会的正是「等价的边界在哪」。</li>
+</ul>
+<h3>5. Position 口旁边没有数字框，我填不了值</h3>
+<ul>
+<li>那是因为它默认读「每个点自己的原坐标」（这是 Field 的行为）。要填固定值，得像实验 C 那样从外面接一个 Vector 节点进来。不过今天的主战场是 Offset。</li>
+</ul>
+<h3>6. 我想现在就学「只挪一部分点」</h3>
+<ul>
+<li>先忍住。那需要给 Selection 接一个真正的条件，就要用到 Field。我们按从零的节奏走，先把今天的边界立稳。</li>
+</ul>
+<hr />
+<h2>收工检查清单</h2>
+<ul class="checklist">
+<li><label><input type="checkbox" disabled /> 能用一句话说出 Transform Geometry 和 Set Position 的区别</label></li>
+<li><label><input type="checkbox" disabled /> 知道只做平移时两者等价，而旋转、缩放只能交给 Transform</label></li>
+<li><label><input type="checkbox" disabled /> 会用 Set Position 的 <strong>Offset</strong> 把整块平移</label></li>
+<li><label><input type="checkbox" disabled /> 知道往 <strong>Position</strong> 填固定值会让所有点挤成一点</label></li>
+<li><label><input type="checkbox" disabled /> 会用 Viewer 照「Set Position 之前 / 之后 / Join 之后」，用视口举证</label></li>
+<li><label><input type="checkbox" disabled /> 完成至少三道小练习</label></li>
+</ul>
+<hr />
+<h2>下节预告</h2>
+<p>第 5 课我们终于要轻轻推开 Field 的门，但会非常慢：</p>
+<p><strong>Position 节点与「每个点都不一样」：第一次让点各挪各的</strong></p>
+<ul>
+<li>今天的 Offset 给所有点的都是同一个数，所以整块平移。</li>
+<li>下一课我们用 <strong>Position</strong> 节点读出「每个点自己在哪」，再把它喂回 Set Position，让高处的点和低处的点挪得不一样——方块会第一次被「拉歪」。</li>
+<li>仍然全程用 Viewer 和 Spreadsheet（表格编辑器）验证，一步一步来。</li>
+</ul>
+<hr />
+<h2>本课文件一览</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>课件</td>
+<td><code>lessons/L04_set_position_vs_transform.md</code></td>
+</tr>
+<tr>
+<td>案例</td>
+<td><code>blends/L04_set_position_vs_transform.blend</code></td>
+</tr>
+<tr>
+<td>配图</td>
+<td><code>assets/L04/</code>（渲染参考 ×2 + 概念图 ×3）</td>
+</tr>
+<tr>
+<td>脚本</td>
+<td><code>scripts/create_L04.py</code>、<code>scripts/gen_l04_illustrations.py</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Google Drive 同步文件夹：课程根目录 <code>GeometryNodesCourse</code>（与云电脑同结构）。</p>
+<hr />
+<p><em>L04 · Set Position vs Transform Geometry · Blender 5.2 LTS</em></p>
+    <footer>斯坦圣 · <a href="https://ptsly.com/" style="color:var(--accent)">ptsly.com</a></footer>
+  </div>
+  <script src="img-zoom.js" defer></script>
+</body>
+</html>
